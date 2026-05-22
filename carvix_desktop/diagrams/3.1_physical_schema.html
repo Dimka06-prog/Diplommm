@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 3.1 — Физическая схема базы данных системы Carvix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .connection-info {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .sql-schema {
+            background: #1C1B17;
+            color: #00FF00;
+            padding: 30px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 3.1 — Физическая схема базы данных системы Carvix</h1>
+        
+        <div class="connection-info">
+            Параметры подключения (общие с веб-приложением):<br>
+            DB_HOST=127.0.0.1, DB_PORT=5432, DB_NAME=carvix<br>
+            DB_USER=root, DB_PASSWORD=130507130507
+        </div>
+        
+        <div class="sql-schema">
+-- Таблица ролей
+CREATE TABLE rol (
+    id SERIAL PRIMARY KEY,
+    nazvanie VARCHAR(50) NOT NULL
+);
+
+-- Данные ролей
+INSERT INTO rol (id, nazvanie) VALUES
+(1, 'Диспетчер'),
+(2, 'Водитель'),
+(3, 'Механик'),
+(4, 'Администратор');
+
+-- Таблица подразделений
+CREATE TABLE podrazdelenie (
+    id SERIAL PRIMARY KEY,
+    nazvanie VARCHAR(100) NOT NULL
+);
+
+-- Таблица сотрудников
+CREATE TABLE sotrudnik (
+    id SERIAL PRIMARY KEY,
+    fio VARCHAR(255) NOT NULL,
+    login VARCHAR(50) UNIQUE NOT NULL,
+    parol_hash VARCHAR(255) NOT NULL,
+    license_number VARCHAR(20),
+    phone VARCHAR(20),
+    rol_id INTEGER REFERENCES rol(id),
+    podrazdelenie_id INTEGER REFERENCES podrazdelenie(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы для сотрудников
+CREATE INDEX idx_sotrudnik_rol_id ON sotrudnik(rol_id);
+CREATE INDEX idx_sotrudnik_podrazdelenie_id ON sotrudnik(podrazdelenie_id);
+
+-- Таблица марок
+CREATE TABLE marka (
+    id SERIAL PRIMARY KEY,
+    nazvanie VARCHAR(100) NOT NULL
+);
+
+-- Таблица моделей
+CREATE TABLE model (
+    id SERIAL PRIMARY KEY,
+    nazvanie VARCHAR(100) NOT NULL,
+    marka_id INTEGER REFERENCES marka(id)
+);
+
+-- Таблица транспортных средств
+CREATE TABLE transportnoe_sredstvo (
+    id SERIAL PRIMARY KEY,
+    gos_nomer VARCHAR(20) UNIQUE NOT NULL,
+    invent_nomer VARCHAR(20) UNIQUE NOT NULL,
+    vin VARCHAR(17) UNIQUE NOT NULL,
+    probeg INTEGER DEFAULT 0,
+    model_id INTEGER REFERENCES model(id),
+    tekuschee_sostoyanie VARCHAR(50) DEFAULT 'Активно',
+    to_expiry DATE,
+    insurance_expiry DATE,
+    podrazdelenie_id INTEGER REFERENCES podrazdelenie(id),
+    assigned_driver_id INTEGER REFERENCES sotrudnik(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы для ТС
+CREATE INDEX idx_transportnoe_sredstvo_model_id ON transportnoe_sredstvo(model_id);
+CREATE INDEX idx_transportnoe_sredstvo_podrazdelenie_id ON transportnoe_sredstvo(podrazdelenie_id);
+CREATE INDEX idx_transportnoe_sredstvo_assigned_driver_id ON transportnoe_sredstvo(assigned_driver_id);
+
+-- Таблица графика работы
+CREATE TABLE work_schedule (
+    id SERIAL PRIMARY KEY,
+    ts_id INTEGER REFERENCES transportnoe_sredstvo(id),
+    driver_id INTEGER REFERENCES sotrudnik(id),
+    date DATE NOT NULL,
+    shift_start TIME,
+    shift_end TIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы для графика
+CREATE INDEX idx_work_schedule_ts_id ON work_schedule(ts_id);
+CREATE INDEX idx_work_schedule_driver_id ON work_schedule(driver_id);
+CREATE INDEX idx_work_schedule_date ON work_schedule(date);
+
+-- Таблица штрафов
+CREATE TABLE fines (
+    id SERIAL PRIMARY KEY,
+    ts_id INTEGER REFERENCES transportnoe_sredstvo(id),
+    date DATE NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'Не оплачен',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы для штрафов
+CREATE INDEX idx_fines_ts_id ON fines(ts_id);
+CREATE INDEX idx_fines_date ON fines(date);
+CREATE INDEX idx_fines_status ON fines(status);
+
+-- Таблица ТО и Страховки
+CREATE TABLE maintenance (
+    id SERIAL PRIMARY KEY,
+    ts_id INTEGER REFERENCES transportnoe_sredstvo(id),
+    date DATE NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'Запланировано',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы для ТО
+CREATE INDEX idx_maintenance_ts_id ON maintenance(ts_id);
+CREATE INDEX idx_maintenance_date ON maintenance(date);
+CREATE INDEX idx_maintenance_type ON maintenance(type);
+
+-- Таблица настроек приложения
+CREATE TABLE app_settings (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индекс для настроек
+CREATE INDEX idx_app_settings_key ON app_settings(key);
+        </div>
+    </div>
+</body>
+</html>

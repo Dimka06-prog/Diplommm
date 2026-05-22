@@ -7,6 +7,7 @@ from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_MANAGE_USERS
+from src.validation import Validator, ValidationError
 import bcrypt
 
 class UsersPage(QWidget):
@@ -205,10 +206,12 @@ class UserDialog(QDialog):
         self.phone_input.setMinimumWidth(300)
 
         self.role_combo = QComboBox()
-        self.role_combo.addItem("Диспетчер", 1)
-        self.role_combo.addItem("Водитель", 2)
+        self.role_combo.addItem("Аналитик", 1)
+        self.role_combo.addItem("Диспетчер", 2)
         self.role_combo.addItem("Механик", 3)
-        self.role_combo.addItem("Администратор", 4)
+        self.role_combo.addItem("Главный механик", 4)
+        self.role_combo.addItem("Директор", 5)
+        self.role_combo.addItem("Водитель", 6)
         self.role_combo.setMinimumWidth(300)
 
         form_layout.addRow("ФИО:", self.fio_input)
@@ -241,16 +244,17 @@ class UserDialog(QDialog):
             phone = self.phone_input.text().strip()
             rol_id = self.role_combo.currentData()
 
-            if not fio or not login:
-                QMessageBox.warning(self, "Ошибка", "Заполните обязательные поля")
-                return
+            # Валидация
+            try:
+                Validator.validate_fio(fio)
+                Validator.validate_login(login)
+                Validator.validate_phone(phone)
+                Validator.validate_license_number(license_number)
 
-            if not self.edit_mode and not password:
-                QMessageBox.warning(self, "Ошибка", "Введите пароль")
-                return
-
-            if not self.edit_mode and len(password) < 3:
-                QMessageBox.warning(self, "Ошибка", "Пароль должен быть минимум 3 символа")
+                if not self.edit_mode:
+                    Validator.validate_password(password)
+            except ValidationError as e:
+                QMessageBox.warning(self, "Ошибка валидации", str(e))
                 return
 
             if self.edit_mode:

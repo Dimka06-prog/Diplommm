@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диаграмма развертывания</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .deployment-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        .environment {
+            border: 3px solid #1C1B17;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .environment.workstation {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+        }
+        .environment.server {
+            background: linear-gradient(135deg, #1C1B17 0%, #3F3D38 100%);
+            color: white;
+        }
+        .environment-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .application-box {
+            border: 2px solid #1C1B17;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .environment.server .application-box {
+            border-color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .application-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .components {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .component {
+            background: white;
+            border: 2px solid #4A7C59;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            min-width: 120px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .environment.server .component {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+            color: white;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 30px;
+            color: #4A7C59;
+            margin: 10px 0;
+        }
+        .environment.server .arrow {
+            color: white;
+        }
+        .connection-info {
+            text-align: center;
+            font-size: 14px;
+            color: #e5a00d;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Диаграмма развертывания</h1>
+        
+        <div class="deployment-diagram">
+            <div class="environment workstation">
+                <div class="environment-title">User Workstation</div>
+                
+                <div class="application-box">
+                    <div class="application-title">Carvix Desktop Application</div>
+                    <div class="components">
+                        <div class="component">UI (PyQt6)</div>
+                        <div class="component">Logic (Python)</div>
+                        <div class="component">Models</div>
+                    </div>
+                </div>
+                
+                <div class="application-box">
+                    <div class="application-title">Database Connection Pool</div>
+                    <div class="components">
+                        <div class="component">(psycopg2-binary)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ SSL/TLS</div>
+            <div class="connection-info">DB_HOST=127.0.0.1, DB_PORT=5432, DB_NAME=carvix</div>
+            
+            <div class="environment server">
+                <div class="environment-title">PostgreSQL Database Server</div>
+                
+                <div class="application-box">
+                    <div class="application-title">Carvix Database</div>
+                    <div class="components">
+                        <div class="component">sotrudnik</div>
+                        <div class="component">transportnoe_sredstvo</div>
+                        <div class="component">fines</div>
+                        <div class="component">schedule</div>
+                        <div class="component">maintenance</div>
+                    </div>
+                </div>
+                
+                <div class="application-box">
+                    <div class="application-title">Connection Pool</div>
+                    <div class="components">
+                        <div class="component">Pool Management</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

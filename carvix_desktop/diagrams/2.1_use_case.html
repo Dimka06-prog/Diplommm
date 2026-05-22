@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 2.1 — Диаграмма прецедентов (Use Case) информационной системы Carvix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .use-case-diagram {
+            border: 3px solid #1C1B17;
+            border-radius: 10px;
+            padding: 40px;
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+        }
+        .actor {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            margin: 10px;
+            display: inline-block;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .actor.admin {
+            background: linear-gradient(135deg, #e5a00d 0%, #C98A00 100%);
+        }
+        .use-cases-section {
+            margin: 30px 0;
+        }
+        .actor-section {
+            margin: 25px 0;
+        }
+        .actor-name {
+            font-weight: bold;
+            color: #1C1B17;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .use-cases-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-left: 30px;
+        }
+        .use-case {
+            background: white;
+            border: 2px solid #4A7C59;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #1C1B17;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .arrow {
+            color: #4A7C59;
+            font-size: 20px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 2.1 — Диаграмма прецедентов (Use Case) информационной системы Carvix</h1>
+        
+        <div class="use-case-diagram">
+            <div class="use-cases-section">
+                <div class="actor-section">
+                    <div class="actor">Диспетчер</div>
+                    <div class="use-cases-list">
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC1: Управление водителями</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC2: Управление ТС</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC3: Управление графиком работы</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC4: Управление штрафами</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC5: Просмотр ТО</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC6: Генерация отчетов</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC7: Просмотр дашборда</div>
+                    </div>
+                </div>
+                
+                <div class="actor-section">
+                    <div class="actor">Водитель</div>
+                    <div class="use-cases-list">
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC8: Просмотр своего профиля</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC9: Просмотр своего графика</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC10: Просмотр своих штрафов</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC11: Смена пароля</div>
+                    </div>
+                </div>
+                
+                <div class="actor-section">
+                    <div class="actor">Механик</div>
+                    <div class="use-cases-list">
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC12: Просмотр ТС</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC13: Управление ТО</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC14: Управление ремонтами</div>
+                    </div>
+                </div>
+                
+                <div class="actor-section">
+                    <div class="actor admin">Администратор</div>
+                    <div class="use-cases-list">
+                        <span class="arrow">→</span>
+                        <div class="use-case">Все права диспетчера</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC15: Управление пользователями</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC16: Управление ролями</div>
+                        <span class="arrow">→</span>
+                        <div class="use-case">UC17: Системные настройки</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диаграмма классов приложения Carvix Desktop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .class-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            min-width: 1200px;
+        }
+        .layer {
+            border: 3px solid #1C1B17;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .layer.presentation {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+        }
+        .layer.business {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+        }
+        .layer.data {
+            background: linear-gradient(135deg, #1C1B17 0%, #3F3D38 100%);
+            color: white;
+        }
+        .layer-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .classes {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .class-box {
+            background: white;
+            border: 2px solid #1C1B17;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 150px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .layer.presentation .class-box {
+            background: white;
+        }
+        .layer.business .class-box {
+            background: rgba(255,255,255,0.9);
+            color: #1C1B17;
+        }
+        .layer.data .class-box {
+            background: rgba(255,255,255,0.9);
+            color: #1C1B17;
+        }
+        .class-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .class-fields {
+            font-size: 12px;
+            color: #3F3D38;
+        }
+        .field {
+            padding: 2px 0;
+        }
+        .method {
+            color: #4A7C59;
+            font-weight: bold;
+            padding: 2px 0;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 30px;
+            color: #4A7C59;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Диаграмма классов приложения Carvix Desktop</h1>
+        
+        <div class="class-diagram">
+            <div class="layer presentation">
+                <div class="layer-title">Presentation Layer</div>
+                <div class="classes">
+                    <div class="class-box">
+                        <div class="class-title">AuthDialog</div>
+                        <div class="class-fields">
+                            <div class="field">- login_input</div>
+                            <div class="field">- pass_input</div>
+                            <div class="method">+ authenticate()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">MainWindow</div>
+                        <div class="class-fields">
+                            <div class="field">- user_data</div>
+                            <div class="field">- pages</div>
+                            <div class="field">- sidebar</div>
+                            <div class="method">+ create_sidebar()</div>
+                            <div class="method">+ navigate()</div>
+                            <div class="method">+ logout()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">BasePage</div>
+                        <div class="class-fields">
+                            <div class="field">- user_data</div>
+                            <div class="method">+ init_ui()</div>
+                            <div class="method">+ refresh_data()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">DashboardPage</div>
+                        <div class="class-fields">
+                            <div class="method">+ update_charts()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">DriversPage</div>
+                        <div class="class-fields">
+                            <div class="method">+ filter_table()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">VehiclesPage</div>
+                        <div class="class-fields">
+                            <div class="method">+ filter_table()</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">↓</div>
+            
+            <div class="layer business">
+                <div class="layer-title">Business Layer</div>
+                <div class="classes">
+                    <div class="class-box">
+                        <div class="class-title">Validator</div>
+                        <div class="class-fields">
+                            <div class="method">+ validate_fio()</div>
+                            <div class="method">+ validate_login()</div>
+                            <div class="method">+ validate_password()</div>
+                            <div class="method">+ validate_gos_nomer()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">ErrorHandler</div>
+                        <div class="class-fields">
+                            <div class="method">+ handle_error()</div>
+                            <div class="method">+ log_error()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">Logger</div>
+                        <div class="class-fields">
+                            <div class="method">+ log_login()</div>
+                            <div class="method">+ log_logout()</div>
+                            <div class="method">+ log_action()</div>
+                            <div class="method">+ log_error()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">SettingsManager</div>
+                        <div class="class-fields">
+                            <div class="method">+ get_setting()</div>
+                            <div class="method">+ set_setting()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">Permissions</div>
+                        <div class="class-fields">
+                            <div class="method">+ has_permission()</div>
+                            <div class="method">+ get_menu_items()</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">↓</div>
+            
+            <div class="layer data">
+                <div class="layer-title">Data Layer</div>
+                <div class="classes">
+                    <div class="class-box">
+                        <div class="class-title">Database</div>
+                        <div class="class-fields">
+                            <div class="method">+ execute_query()</div>
+                            <div class="method">+ close_all()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">Connection Pool</div>
+                        <div class="class-fields">
+                            <div class="field">- pool</div>
+                            <div class="method">+ get_conn()</div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-box">
+                        <div class="class-title">Models</div>
+                        <div class="class-fields">
+                            <div class="field">- Employee</div>
+                            <div class="field">- Vehicle</div>
+                            <div class="field">- Fine</div>
+                            <div class="field">- Schedule</div>
+                            <div class="field">- Maintenance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

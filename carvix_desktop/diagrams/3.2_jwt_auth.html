@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 3.2 — Последовательность операций JWT-аутентификации</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .sequence-diagram {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px;
+        }
+        .actor {
+            text-align: center;
+            min-width: 150px;
+        }
+        .actor-box {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .actor-name {
+            font-size: 12px;
+            color: #3F3D38;
+        }
+        .sequence-steps {
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+        .step {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+            border-left: 4px solid #4A7C59;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .step-number {
+            font-weight: bold;
+            color: #4A7C59;
+            margin-bottom: 5px;
+        }
+        .step-description {
+            color: #1C1B17;
+            font-size: 14px;
+        }
+        .arrow {
+            text-align: center;
+            color: #4A7C59;
+            font-size: 24px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 3.2 — Последовательность операций JWT-аутентификации</h1>
+        
+        <div class="sequence-diagram">
+            <div class="actor">
+                <div class="actor-box">Client</div>
+                <div class="actor-name">Клиент</div>
+            </div>
+            
+            <div class="actor">
+                <div class="actor-box">Auth Server</div>
+                <div class="actor-name">Сервер авторизации</div>
+            </div>
+            
+            <div class="actor">
+                <div class="actor-box">Database</div>
+                <div class="actor-name">База данных</div>
+            </div>
+            
+            <div class="actor">
+                <div class="actor-box">JWT Service</div>
+                <div class="actor-name">Сервис JWT</div>
+            </div>
+        </div>
+        
+        <div class="sequence-steps">
+            <div class="step">
+                <div class="step-number">1. POST /login</div>
+                <div class="step-description">Client отправляет {login, password} на Auth Server</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2. SELECT * FROM sotrudnik WHERE login = ?</div>
+                <div class="step-description">Auth Server запрашивает данные пользователя из Database</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3. Возвращает данные пользователя</div>
+                <div class="step-description">Database возвращает данные пользователя Auth Server</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4. Проверка пароля (bcrypt)</div>
+                <div class="step-description">Auth Server проверяет пароль</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5. Генерация JWT токена</div>
+                <div class="step-description">Auth Server генерирует JWT токен через JWT Service</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">6. Возвращает токен</div>
+                <div class="step-description">JWT Service возвращает токен Auth Server</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">7. 200 OK {token}</div>
+                <div class="step-description">Auth Server возвращает токен Client</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">8. Сохранение токена в localStorage</div>
+                <div class="step-description">Client сохраняет токен</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">9. GET /protected Authorization: Bearer {token}</div>
+                <div class="step-description">Client отправляет запрос с токеном</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">10. Верификация JWT</div>
+                <div class="step-description">Auth Server верифицирует JWT токен через JWT Service</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">11. Валидный/невалидный</div>
+                <div class="step-description">JWT Service возвращает результат верификации</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">12. 200 OK / 401 Unauthorized</div>
+                <div class="step-description">Auth Server возвращает ответ Client</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

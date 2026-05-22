@@ -7,6 +7,7 @@ from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_ADD_DRIVER, PERMISSION_EDIT_DRIVER, PERMISSION_DELETE_DRIVER
+from src.validation import Validator, ValidationError
 from datetime import date
 import bcrypt
 
@@ -36,6 +37,16 @@ class DriversPage(QWidget):
             header_layout.addWidget(add_btn)
 
         layout.addLayout(header_layout)
+
+        # Search bar
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("Поиск:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Введите ФИО или логин...")
+        self.search_input.textChanged.connect(self.filter_table)
+        search_layout.addWidget(self.search_input)
+        search_layout.addStretch()
+        layout.addLayout(search_layout)
         
         self.table = QTableWidget()
         self.table.setColumnCount(6)
@@ -78,28 +89,54 @@ class DriversPage(QWidget):
         
     def refresh_data(self):
         try:
-            query = """
-                SELECT s.id, s.fio, s.login, s.license_number, s.phone,
+            query = """SELECT s.id, s.fio, s.login, s.license_number, s.phone,
                        r.nazvanie as rol_name, p.nazvanie as podrazdelenie_name
-                FROM sotrudnik s
-                JOIN rol r ON s.rol_id = r.id
-                JOIN podrazdelenie p ON s.podrazdelenie_id = p.id
-                ORDER BY s.fio
-            """
+                       FROM sotrudnik s
+                       JOIN rol r ON s.rol_id = r.id
+                       LEFT JOIN podrazdelenie p ON s.podrazdelenie_id = p.id
+                       ORDER BY s.fio"""
             drivers = Database.execute_query(query)
+            self.drivers_data = drivers  # Store for filtering
             self.table.setRowCount(len(drivers))
-            
+
             for row, driver in enumerate(drivers):
                 self.table.setItem(row, 0, QTableWidgetItem(driver['fio']))
                 self.table.setItem(row, 1, QTableWidgetItem(driver['login']))
                 self.table.setItem(row, 2, QTableWidgetItem(driver.get('license_number', '-')))
                 self.table.setItem(row, 3, QTableWidgetItem(driver.get('phone', '-')))
                 self.table.setItem(row, 4, QTableWidgetItem(driver['rol_name']))
-                self.table.setItem(row, 5, QTableWidgetItem(driver['podrazdelenie_name']))
+                self.table.setItem(row, 5, QTableWidgetItem(driver.get('podrazdelenie_name', '-')))
                 self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, driver['id'])
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
-            
+            pass
+
+    def filter_table(self, search_text):
+        """Фильтрация таблицы по поисковому запросу"""
+        if not hasattr(self, 'drivers_data'):
+            return
+
+        search_text = search_text.lower()
+        filtered_drivers = []
+
+        for driver in self.drivers_data:
+            fio = driver['fio'].lower()
+            login = driver['login'].lower()
+            license_num = driver.get('license_number', '').lower()
+
+            if search_text in fio or search_text in login or search_text in license_num:
+                filtered_drivers.append(driver)
+
+        self.table.setRowCount(len(filtered_drivers))
+
+        for row, driver in enumerate(filtered_drivers):
+            self.table.setItem(row, 0, QTableWidgetItem(driver['fio']))
+            self.table.setItem(row, 1, QTableWidgetItem(driver['login']))
+            self.table.setItem(row, 2, QTableWidgetItem(driver.get('license_number', '-')))
+            self.table.setItem(row, 3, QTableWidgetItem(driver.get('phone', '-')))
+            self.table.setItem(row, 4, QTableWidgetItem(driver['rol_name']))
+            self.table.setItem(row, 5, QTableWidgetItem(driver.get('podrazdelenie_name', '-')))
+            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, driver['id'])
+
     def open_add_driver_dialog(self):
         dialog = DriverDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
@@ -253,39 +290,39 @@ class DriverDialog(QDialog):
         layout.addLayout(btn_layout)
         
     def save_driver(self):
-        fio = self.fio_input.text().strip()
-        login = self.login_input.text().strip()
-        password = self.password_input.text().strip()
-        license_num = self.license_input.text().strip()
-        phone = self.phone_input.text().strip()
-        role_id = self.role_combo.currentData()
-        dept_id = self.dept_combo.currentData()
-        
-        if not fio or not login:
-            QMessageBox.warning(self, "Ошибка", "Заполните обязательные поля")
-            return
-        
         try:
+            fio = self.fio_input.text().strip()
+            login = self.login_input.text().strip()
+            password = self.password_input.text().strip() if not self.edit_mode else None
+            license_number = self.license_input.text().strip()
+            phone = self.phone_input.text().strip()
+            rol_id = self.role_combo.currentData()
+            podrazdelenie_id = self.dept_combo.currentData()
+
+            # Валидация
+            try:
+                Validator.validate_fio(fio)
+                Validator.validate_login(login)
+                Validator.validate_phone(phone)
+                Validator.validate_license_number(license_number)
+
+                if not self.edit_mode:
+                    Validator.validate_password(password)
+            except ValidationError as e:
+                QMessageBox.warning(self, "Ошибка валидации", str(e))
+                return
+
             if self.edit_mode:
-                if password:
-                    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                    query = """UPDATE sotrudnik SET fio = %s, login = %s, parol_hash = %s, rol_id = %s, 
-                              podrazdelenie_id = %s, license_number = %s, phone = %s WHERE id = %s"""
-                    Database.execute_query(query, (fio, login, password_hash, role_id, dept_id, license_num, phone, self.driver_data['id']), fetch=False)
-                else:
-                    query = """UPDATE sotrudnik SET fio = %s, login = %s, rol_id = %s, 
-                              podrazdelenie_id = %s, license_number = %s, phone = %s WHERE id = %s"""
-                    Database.execute_query(query, (fio, login, role_id, dept_id, license_num, phone, self.driver_data['id']), fetch=False)
+                query = """UPDATE sotrudnik SET fio = %s, login = %s, license_number = %s,
+                          phone = %s, rol_id = %s, podrazdelenie_id = %s WHERE id = %s"""
+                Database.execute_query(query, (fio, login, license_number, phone, rol_id, podrazdelenie_id, self.driver_data['id']), fetch=False)
                 QMessageBox.information(self, "Успех", "Водитель успешно обновлен")
             else:
-                if not password:
-                    QMessageBox.warning(self, "Ошибка", "Введите пароль")
-                    return
                 password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                query = """INSERT INTO sotrudnik (fio, login, parol_hash, rol_id, podrazdelenie_id, license_number, phone)
+                query = """INSERT INTO sotrudnik (fio, login, parol_hash, license_number, phone, rol_id, podrazdelenie_id)
                           VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-                Database.execute_query(query, (fio, login, password_hash, role_id, dept_id, license_num, phone), fetch=False)
+                Database.execute_query(query, (fio, login, password_hash, license_number, phone, rol_id, podrazdelenie_id), fetch=False)
                 QMessageBox.information(self, "Успех", "Водитель успешно добавлен")
             self.accept()
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка сохранения: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", str(e))

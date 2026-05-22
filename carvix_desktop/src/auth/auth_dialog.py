@@ -1,15 +1,18 @@
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QFrame, QGridLayout, 
+from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+                             QLineEdit, QPushButton, QFrame, QGridLayout,
                              QMessageBox, QWidget)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QPalette, QColor
-import bcrypt
+from PyQt6.QtGui import QFont
 from src.database import Database
-from config import APP_NAME, ROLES
 from src.styles import get_header_font, get_font
+from src.logger import logger
+from src.error_handler import ErrorHandler
+from config import APP_NAME
+import bcrypt
 
 class AuthDialog(QDialog):
     authenticated = pyqtSignal(dict)
+    exit_app = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -98,35 +101,7 @@ class AuthDialog(QDialog):
         
         form_layout.addWidget(password_label)
         form_layout.addWidget(self.password_input)
-        
-        # Role selection
-        role_label = QLabel("Роль")
-        role_label.setFont(get_font(12))
-        role_label.setStyleSheet("color: #9A9892;")
-        
-        from PyQt6.QtWidgets import QComboBox
-        self.role_combo = QComboBox()
-        self.role_combo.setFixedHeight(50)
-        self.role_combo.setStyleSheet("""
-            QComboBox {
-                background: #FFFFFF;
-                border: 1px solid #E2E2E0;
-                border-radius: 12px;
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-            QComboBox:focus {
-                border: 2px solid #1C1B17;
-            }
-        """)
-        self.role_combo.addItem("Диспетчер", "dispatcher")
-        self.role_combo.addItem("Водитель", "driver")
-        self.role_combo.addItem("Механик", "mechanic")
-        self.role_combo.addItem("Администратор", "admin")
-        
-        form_layout.addWidget(role_label)
-        form_layout.addWidget(self.role_combo)
-        
+
         layout.addLayout(form_layout)
         
         # Login button
@@ -165,7 +140,7 @@ class AuthDialog(QDialog):
                 color: #1C1B17;
             }
         """)
-        exit_btn.clicked.connect(self.reject)
+        exit_btn.clicked.connect(self.exit_app.emit)
         layout.addWidget(exit_btn)
         
         # Add main widget to dialog
@@ -180,16 +155,15 @@ class AuthDialog(QDialog):
     def authenticate(self):
         login = self.login_input.text().strip()
         password = self.password_input.text().strip()
-        role_key = self.role_combo.currentData()
-        
+
         if not login or not password:
             QMessageBox.warning(self, "Ошибка", "Заполните все поля")
             return
-        
+
         try:
             # Query employee from database
             query = """
-                SELECT s.id, s.fio, s.login, s.parol_hash, 
+                SELECT s.id, s.fio, s.login, s.parol_hash,
                        s.rol_id, r.nazvanie as rol_name,
                        s.podrazdelenie_id, p.nazvanie as podrazdelenie_name
                 FROM sotrudnik s
@@ -198,16 +172,17 @@ class AuthDialog(QDialog):
                 WHERE s.login = %s
             """
             result = Database.execute_query(query, (login,))
-            
+
             if not result:
+                logger.log_login(0, login, "Unknown", False)
                 QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
                 return
-            
+
             user = result[0]
-            
+
             # Verify password
             if bcrypt.checkpw(password.encode('utf-8'), user['parol_hash'].encode('utf-8')):
-                # Роль уже определена в базе данных, используем её
+                # Роль берется из базы данных
                 self.user_data = {
                     'id': user['id'],
                     'fio': user['fio'],
@@ -215,14 +190,15 @@ class AuthDialog(QDialog):
                     'rol_id': user['rol_id'],
                     'rol_name': user['rol_name'],
                     'podrazdelenie_id': user['podrazdelenie_id'],
-                    'podrazdelenie_name': user['podrazdelenie_name'],
-                    'role_key': role_key
+                    'podrazdelenie_name': user['podrazdelenie_name']
                 }
-                
+
                 self.authenticated.emit(self.user_data)
+                logger.log_login(user['id'], user['login'], user['rol_name'], True)
                 self.accept()
             else:
-                QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
-                
+                logger.log_login(user['id'], login, user['rol_name'], False)
+
         except Exception as e:
+            logger.log_error(0, str(e), "Authentication")
             QMessageBox.critical(self, "Ошибка", f"Ошибка подключения к базе данных: {str(e)}")

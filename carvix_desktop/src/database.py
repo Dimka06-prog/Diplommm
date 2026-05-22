@@ -13,19 +13,19 @@ class Database:
     @classmethod
     def initialize_pool(cls):
         try:
-            # SSL configuration (same as web app)
-            use_ssl = bool(DATABASE_URL) or os.getenv('PGSSL', 'false').lower() == 'true'
-            ssl_config = {'sslmode': 'require'} if use_ssl else {}
-            
             # Use DATABASE_URL if available (cloud databases), otherwise use individual config
             if DATABASE_URL:
+                # DATABASE_URL already contains SSL parameters
                 cls._connection_pool = pool.SimpleConnectionPool(
                     minconn=1,
                     maxconn=10,
-                    dsn=DATABASE_URL,
-                    **ssl_config
+                    dsn=DATABASE_URL
                 )
             else:
+                # SSL configuration for local databases
+                use_ssl = os.getenv('PGSSL', 'false').lower() == 'true'
+                ssl_config = {'sslmode': 'require'} if use_ssl else {}
+                
                 cls._connection_pool = pool.SimpleConnectionPool(
                     minconn=1,
                     maxconn=10,

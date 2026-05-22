@@ -20,12 +20,13 @@ if DATABASE_URL:
     }
 else:
     # Individual environment variables (local PostgreSQL)
+    # Default values match web application configuration
     DB_CONFIG = {
         'host': os.getenv('DB_HOST', '127.0.0.1'),
         'port': os.getenv('DB_PORT', '5432'),
         'database': os.getenv('DB_NAME', 'carvix'),
-        'user': os.getenv('DB_USER', 'postgres'),
-        'password': os.getenv('DB_PASSWORD', '')
+        'user': os.getenv('DB_USER', 'root'),
+        'password': os.getenv('DB_PASSWORD', '130507130507')
     }
 
 # SSL configuration (same as web app)
@@ -55,12 +56,15 @@ COLORS = {
     'accent_soft': '#3F3D38'
 }
 
-# Role mappings
+# Role mappings (matching web application roles)
 ROLES = {
-    'dispatcher': {'id': 1, 'name': 'Диспетчер', 'name_en': 'dispatcher'},
-    'driver': {'id': 2, 'name': 'Водитель', 'name_en': 'driver'},
+    'analyst': {'id': 1, 'name': 'Аналитик', 'name_en': 'analyst'},
+    'dispatcher': {'id': 2, 'name': 'Диспетчер', 'name_en': 'dispatcher'},
     'mechanic': {'id': 3, 'name': 'Механик', 'name_en': 'mechanic'},
-    'admin': {'id': 4, 'name': 'Администратор', 'name_en': 'admin'}
+    'chief_mechanic': {'id': 4, 'name': 'Главный механик', 'name_en': 'chief_mechanic'},
+    'director': {'id': 5, 'name': 'Директор', 'name_en': 'director'},
+    'user': {'id': 6, 'name': 'Пользователь', 'name_en': 'user'},
+    'driver': {'id': 7, 'name': 'Водитель', 'name_en': 'driver'}
 }
 
 APP_NAME = 'Carvix — Учет водителей и ТС'

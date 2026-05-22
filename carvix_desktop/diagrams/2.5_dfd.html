@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 2.5 — Диаграмма потоков данных DFD уровня 0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .dfd-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        .level {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .entity {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+            border: 2px solid #1C1B17;
+            padding: 25px 35px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #1C1B17;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+        .entity.system {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+        }
+        .entity.database {
+            background: linear-gradient(135deg, #1C1B17 0%, #3F3D38 100%);
+            color: white;
+        }
+        .arrow-down {
+            text-align: center;
+            font-size: 30px;
+            color: #4A7C59;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 2.5 — Диаграмма потоков данных DFD уровня 0</h1>
+        
+        <div class="dfd-diagram">
+            <div class="level">
+                <div class="entity">Водитель</div>
+                <div class="entity">Диспетчер</div>
+                <div class="entity system">Система Carvix</div>
+                <div class="entity database">База данных</div>
+            </div>
+            
+            <div class="arrow-down">↓ ↓ ↓ ↓</div>
+            
+            <div class="level">
+                <div class="entity">Механик</div>
+                <div class="entity">Админ</div>
+                <div class="entity">Логи</div>
+                <div class="entity">Отчеты</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

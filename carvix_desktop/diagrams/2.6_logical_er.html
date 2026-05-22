@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 2.6 — Логическая ER-диаграмма базы данных системы Carvix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .er-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            min-width: 1000px;
+        }
+        .level {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .entity {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+            border: 2px solid #1C1B17;
+            border-radius: 8px;
+            padding: 20px 25px;
+            min-width: 160px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .entity-title {
+            font-weight: bold;
+            color: #1C1B17;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .entity-fields {
+            font-size: 11px;
+            color: #3F3D38;
+        }
+        .entity-field {
+            padding: 2px 0;
+        }
+        .pk {
+            color: #e5a00d;
+            font-weight: bold;
+        }
+        .fk {
+            color: #4A7C59;
+            font-style: italic;
+        }
+        .relationship {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            color: #4A7C59;
+        }
+        .connector-vertical {
+            width: 2px;
+            height: 30px;
+            background: #4A7C59;
+        }
+        .connector-horizontal {
+            height: 2px;
+            background: #4A7C59;
+            flex-grow: 1;
+        }
+        .one-to-many {
+            font-weight: bold;
+            background: #4A7C59;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 2.6 — Логическая ER-диаграмма базы данных системы Carvix</h1>
+        
+        <div class="er-diagram">
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">rol</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field">nazvanie</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">sotrudnik</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field">fio</div>
+                        <div class="entity-field">login</div>
+                        <div class="entity-field">parol_hash</div>
+                        <div class="entity-field"><span class="fk">rol_id (FK)</span></div>
+                        <div class="entity-field"><span class="fk">podraz_id (FK)</span></div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">podrazdelenie</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field">nazvanie</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationship">
+                <div class="connector-horizontal"></div>
+                <span class="one-to-many">1:N</span>
+                <div class="connector-horizontal"></div>
+            </div>
+            
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">marka</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field">nazvanie</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">transportnoe_sredstvo</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field">gos_nomer</div>
+                        <div class="entity-field">invent_nomer</div>
+                        <div class="entity-field">vin</div>
+                        <div class="entity-field">probeg</div>
+                        <div class="entity-field"><span class="fk">model_id (FK)</span></div>
+                        <div class="entity-field">tekuschee_sostoyanie</div>
+                        <div class="entity-field"><span class="fk">podraz_id (FK)</span></div>
+                        <div class="entity-field"><span class="fk">assigned_driver_id (FK)</span></div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">model</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field">nazvanie</div>
+                        <div class="entity-field"><span class="fk">marka_id (FK)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationship">
+                <div class="connector-horizontal"></div>
+                <span class="one-to-many">1:N</span>
+                <div class="connector-horizontal"></div>
+            </div>
+            
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">fines</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field"><span class="fk">ts_id (FK)</span></div>
+                        <div class="entity-field">date</div>
+                        <div class="entity-field">amount</div>
+                        <div class="entity-field">description</div>
+                        <div class="entity-field">status</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">work_schedule</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field"><span class="fk">ts_id (FK)</span></div>
+                        <div class="entity-field"><span class="fk">driver_id (FK)</span></div>
+                        <div class="entity-field">date</div>
+                        <div class="entity-field">shift_start</div>
+                        <div class="entity-field">shift_end</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">maintenance</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id (PK)</span></div>
+                        <div class="entity-field"><span class="fk">ts_id (FK)</span></div>
+                        <div class="entity-field">date</div>
+                        <div class="entity-field">type</div>
+                        <div class="entity-field">description</div>
+                        <div class="entity-field">status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

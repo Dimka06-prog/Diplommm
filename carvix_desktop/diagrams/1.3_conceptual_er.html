@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 1.3 — Концептуальная ER-диаграмма предметной области финансового учёта операций ТОиР</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .er-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .level {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .entity {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+            border: 2px solid #1C1B17;
+            border-radius: 8px;
+            padding: 20px 30px;
+            min-width: 180px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .entity-title {
+            font-weight: bold;
+            color: #1C1B17;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .entity-fields {
+            font-size: 12px;
+            color: #3F3D38;
+        }
+        .entity-field {
+            padding: 2px 0;
+        }
+        .pk {
+            color: #e5a00d;
+            font-weight: bold;
+        }
+        .fk {
+            color: #4A7C59;
+            font-style: italic;
+        }
+        .relationship {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            color: #4A7C59;
+        }
+        .connector-vertical {
+            width: 2px;
+            height: 30px;
+            background: #4A7C59;
+        }
+        .connector-horizontal {
+            height: 2px;
+            background: #4A7C59;
+            flex-grow: 1;
+        }
+        .one-to-many {
+            font-weight: bold;
+            background: #4A7C59;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 1.3 — Концептуальная ER-диаграмма предметной области финансового учёта операций ТОиР</h1>
+        
+        <div class="er-diagram">
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">Подразделение</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field">nazvanie</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">Транспортное средство</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field">gos_nomer</div>
+                        <div class="entity-field">probeg</div>
+                        <div class="entity-field">to_expiry</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">Сотрудник</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field">fio</div>
+                        <div class="entity-field"><span class="fk">rol_id</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationship">
+                <div class="connector-horizontal"></div>
+                <span class="one-to-many">1:N</span>
+                <div class="connector-horizontal"></div>
+            </div>
+            
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">ТОиР</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field"><span class="fk">ts_id</span></div>
+                        <div class="entity-field">date</div>
+                        <div class="entity-field">type</div>
+                        <div class="entity-field">cost</div>
+                        <div class="entity-field">status</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">Запчасти</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field">nazvanie</div>
+                        <div class="entity-field">cena</div>
+                        <div class="entity-field">kolichestvo</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationship">
+                <div class="connector-horizontal"></div>
+                <span class="one-to-many">1:N</span>
+                <div class="connector-horizontal"></div>
+            </div>
+            
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">Расходы</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field"><span class="fk">toir_id</span></div>
+                        <div class="entity-field"><span class="fk">zapchast_id</span></div>
+                        <div class="entity-field">amount</div>
+                        <div class="entity-field">date</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationship">
+                <div class="connector-vertical"></div>
+                <span class="one-to-many">1:N</span>
+                <div class="connector-vertical"></div>
+            </div>
+            
+            <div class="level">
+                <div class="entity">
+                    <div class="entity-title">Бюджет</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field"><span class="fk">podrazdelenie</span></div>
+                        <div class="entity-field">period</div>
+                        <div class="entity-field">limit</div>
+                        <div class="entity-field">spent</div>
+                    </div>
+                </div>
+                
+                <div class="entity">
+                    <div class="entity-title">Финансы</div>
+                    <div class="entity-fields">
+                        <div class="entity-field"><span class="pk">id</span></div>
+                        <div class="entity-field">period</div>
+                        <div class="entity-field">amount</div>
+                        <div class="entity-field">type</div>
+                        <div class="entity-field">status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

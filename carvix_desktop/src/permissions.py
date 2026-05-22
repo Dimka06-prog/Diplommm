@@ -2,16 +2,27 @@
 Система прав доступа на основе ролей (RBAC)
 """
 
-# Роли
-ROLE_DISPATCHER = 1
-ROLE_DRIVER = 2
+# Роли (matching database IDs)
+ROLE_ANALYST = 1
+ROLE_DISPATCHER = 2
 ROLE_MECHANIC = 3
-ROLE_ADMIN = 4
+ROLE_CHIEF_MECHANIC = 4
+ROLE_DIRECTOR = 5
+ROLE_DRIVER = 6
+
+# Legacy role constants for compatibility
+ROLE_USER = 6  # Maps to ROLE_DRIVER
+ROLE_ADMIN = 5   # Maps to ROLE_DIRECTOR
 
 ROLE_NAMES = {
+    ROLE_ANALYST: "Аналитик",
     ROLE_DISPATCHER: "Диспетчер",
-    ROLE_DRIVER: "Водитель",
     ROLE_MECHANIC: "Механик",
+    ROLE_CHIEF_MECHANIC: "Главный механик",
+    ROLE_DIRECTOR: "Директор",
+    ROLE_DRIVER: "Водитель",
+    # Legacy mappings
+    ROLE_USER: "Водитель",
     ROLE_ADMIN: "Администратор"
 }
 
@@ -49,6 +60,11 @@ PERMISSION_ADVANCED_REPORTS = "advanced_reports"
 
 # Права для каждой роли
 ROLE_PERMISSIONS = {
+    ROLE_ANALYST: [
+        PERMISSION_VIEW_DASHBOARD,
+        PERMISSION_VIEW_REPORTS,
+        PERMISSION_VIEW_PROFILE,
+    ],
     ROLE_DISPATCHER: [
         PERMISSION_VIEW_DASHBOARD,
         PERMISSION_VIEW_DRIVERS,
@@ -74,12 +90,6 @@ ROLE_PERMISSIONS = {
         PERMISSION_VIEW_REPORTS,
         PERMISSION_VIEW_PROFILE,
     ],
-    ROLE_DRIVER: [
-        PERMISSION_VIEW_DASHBOARD,
-        PERMISSION_VIEW_OWN_SCHEDULE,
-        PERMISSION_VIEW_OWN_FINES,
-        PERMISSION_VIEW_PROFILE,
-    ],
     ROLE_MECHANIC: [
         PERMISSION_VIEW_DASHBOARD,
         PERMISSION_VIEW_VEHICLES,
@@ -87,6 +97,58 @@ ROLE_PERMISSIONS = {
         PERMISSION_ADD_MAINTENANCE,
         PERMISSION_EDIT_MAINTENANCE,
         PERMISSION_DELETE_MAINTENANCE,
+        PERMISSION_VIEW_PROFILE,
+    ],
+    ROLE_CHIEF_MECHANIC: [
+        PERMISSION_VIEW_DASHBOARD,
+        PERMISSION_VIEW_VEHICLES,
+        PERMISSION_VIEW_MAINTENANCE,
+        PERMISSION_ADD_MAINTENANCE,
+        PERMISSION_EDIT_MAINTENANCE,
+        PERMISSION_DELETE_MAINTENANCE,
+        PERMISSION_VIEW_REPORTS,
+        PERMISSION_VIEW_PROFILE,
+    ],
+    ROLE_DIRECTOR: [
+        PERMISSION_VIEW_DASHBOARD,
+        PERMISSION_VIEW_DRIVERS,
+        PERMISSION_ADD_DRIVER,
+        PERMISSION_EDIT_DRIVER,
+        PERMISSION_DELETE_DRIVER,
+        PERMISSION_VIEW_VEHICLES,
+        PERMISSION_ADD_VEHICLE,
+        PERMISSION_EDIT_VEHICLE,
+        PERMISSION_DELETE_VEHICLE,
+        PERMISSION_VIEW_SCHEDULE,
+        PERMISSION_ADD_SCHEDULE,
+        PERMISSION_EDIT_SCHEDULE,
+        PERMISSION_DELETE_SCHEDULE,
+        PERMISSION_VIEW_MAINTENANCE,
+        PERMISSION_ADD_MAINTENANCE,
+        PERMISSION_EDIT_MAINTENANCE,
+        PERMISSION_DELETE_MAINTENANCE,
+        PERMISSION_VIEW_FINES,
+        PERMISSION_ADD_FINE,
+        PERMISSION_EDIT_FINE,
+        PERMISSION_DELETE_FINE,
+        PERMISSION_VIEW_REPORTS,
+        PERMISSION_VIEW_PROFILE,
+        PERMISSION_MANAGE_USERS,
+        PERMISSION_MANAGE_ROLES,
+        PERMISSION_SYSTEM_SETTINGS,
+        PERMISSION_ADVANCED_REPORTS,
+    ],
+    ROLE_DRIVER: [
+        PERMISSION_VIEW_DASHBOARD,
+        PERMISSION_VIEW_OWN_SCHEDULE,
+        PERMISSION_VIEW_OWN_FINES,
+        PERMISSION_VIEW_PROFILE,
+    ],
+    # Legacy mappings
+    ROLE_USER: [
+        PERMISSION_VIEW_DASHBOARD,
+        PERMISSION_VIEW_OWN_SCHEDULE,
+        PERMISSION_VIEW_OWN_FINES,
         PERMISSION_VIEW_PROFILE,
     ],
     ROLE_ADMIN: [
@@ -122,6 +184,11 @@ ROLE_PERMISSIONS = {
 
 # Меню для каждой роли
 ROLE_MENU_ITEMS = {
+    ROLE_ANALYST: [
+        ("dashboard", "Дашборд", "📊"),
+        ("reports", "Отчеты", "📈"),
+        ("profile", "Профиль", "👤"),
+    ],
     ROLE_DISPATCHER: [
         ("dashboard", "Дашборд", "📊"),
         ("drivers", "Водители", "👤"),
@@ -131,16 +198,41 @@ ROLE_MENU_ITEMS = {
         ("fines", "Штрафы", "📋"),
         ("reports", "Отчеты", "📈"),
     ],
+    ROLE_MECHANIC: [
+        ("dashboard", "Дашборд", "📊"),
+        ("vehicles", "Транспорт", "�"),
+        ("maintenance", "ТО и Ремонт", "�"),
+        ("profile", "Профиль", "👤"),
+    ],
+    ROLE_CHIEF_MECHANIC: [
+        ("dashboard", "Дашборд", "📊"),
+        ("vehicles", "Транспорт", "🚗"),
+        ("maintenance", "ТО и Ремонт", "🔧"),
+        ("reports", "Отчеты", "📈"),
+        ("profile", "Профиль", "👤"),
+    ],
+    ROLE_DIRECTOR: [
+        ("dashboard", "Дашборд", "📊"),
+        ("drivers", "Водители", "👤"),
+        ("vehicles", "Транспорт", "🚗"),
+        ("schedule", "График", "📅"),
+        ("maintenance", "ТО и Страховка", "🔧"),
+        ("fines", "Штрафы", "📋"),
+        ("reports", "Отчеты", "📈"),
+        ("users", "Пользователи", "👥"),
+        ("settings", "Настройки", "⚙️"),
+    ],
     ROLE_DRIVER: [
         ("dashboard", "Дашборд", "📊"),
         ("schedule", "Мой график", "📅"),
         ("fines", "Мои штрафы", "📋"),
         ("profile", "Профиль", "👤"),
     ],
-    ROLE_MECHANIC: [
+    # Legacy mappings
+    ROLE_USER: [
         ("dashboard", "Дашборд", "📊"),
-        ("vehicles", "Транспорт", "🚗"),
-        ("maintenance", "ТО и Ремонт", "🔧"),
+        ("schedule", "Мой график", "📅"),
+        ("fines", "Мои штрафы", "📋"),
         ("profile", "Профиль", "👤"),
     ],
     ROLE_ADMIN: [

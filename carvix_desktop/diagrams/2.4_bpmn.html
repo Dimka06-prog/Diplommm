@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 2.4 — BPMN-диаграмма бизнес-процесса обработки заявки на ремонт</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .bpmn-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .event {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .event.end {
+            background: linear-gradient(135deg, #C0392B 0%, #922B21 100%);
+        }
+        .task {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+            border: 2px solid #1C1B17;
+            padding: 20px 40px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #1C1B17;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 200px;
+        }
+        .gateway {
+            background: linear-gradient(135deg, #e5a00d 0%, #C98A00 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .connector-vertical {
+            width: 3px;
+            height: 30px;
+            background: #4A7C59;
+        }
+        .branch {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+        }
+        .branch-path {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .rejected {
+            background: linear-gradient(135deg, #C0392B 0%, #922B21 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 2.4 — BPMN-диаграмма бизнес-процесса обработки заявки на ремонт</h1>
+        
+        <div class="bpmn-flow">
+            <div class="event">Начало</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Водитель обнаруживает неисправность</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Создание заявки на ремонт</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Диспетчер рассматривает заявку</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="gateway">Проверка</div>
+            
+            <div class="branch">
+                <div class="branch-path">
+                    <div class="connector-vertical"></div>
+                    <div class="rejected">Отклонено (недостаточно информации)</div>
+                </div>
+                <div class="branch-path">
+                    <div class="connector-vertical"></div>
+                    <div class="task">Назначение механика</div>
+                </div>
+            </div>
+            
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Механик проводит диагностику</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Оценка стоимости и запчастей</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="gateway">Проверка</div>
+            
+            <div class="branch">
+                <div class="branch-path">
+                    <div class="connector-vertical"></div>
+                    <div class="rejected">Отклонено (превышен бюджет)</div>
+                </div>
+                <div class="branch-path">
+                    <div class="connector-vertical"></div>
+                    <div class="task">Согласование с диспетчером</div>
+                </div>
+            </div>
+            
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Выполнение ремонта</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Проверка качества</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="task">Оформление акта</div>
+            <div class="connector-vertical"></div>
+            
+            <div class="event end">Конец</div>
+        </div>
+    </div>
+</body>
+</html>

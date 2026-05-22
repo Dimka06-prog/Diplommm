@@ -7,6 +7,7 @@ from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, ROLE_DRIVER, PERMISSION_ADD_FINE, PERMISSION_EDIT_FINE, PERMISSION_DELETE_FINE
+from src.validation import Validator, ValidationError
 from datetime import date
 from src.api.gibdd_api import GibddAPI
 
@@ -240,27 +241,29 @@ class FineDialog(QDialog):
         
     def save_fine(self):
         try:
+            ts_id = self.ts_combo.currentData()
+            date_val = self.date_input.date().toString("yyyy-MM-dd")
+            amount = self.amount_input.value()
+            description = self.desc_input.currentText()
+            status = self.status_combo.currentData()
+
+            # Валидация
+            try:
+                Validator.validate_amount(amount)
+            except ValidationError as e:
+                QMessageBox.warning(self, "Ошибка валидации", str(e))
+                return
+
             if self.edit_mode:
                 query = """UPDATE fines SET ts_id = %s, date = %s, amount = %s, description = %s, status = %s WHERE id = %s"""
                 Database.execute_query(query, (
-                    self.ts_combo.currentData(),
-                    self.date_input.date().toString("yyyy-MM-dd"),
-                    self.amount_input.value(),
-                    self.desc_input.currentText(),
-                    self.status_combo.currentData(),
-                    self.fine_data['id']
+                    ts_id, date_val, amount, description, status, self.fine_data['id']
                 ), fetch=False)
                 QMessageBox.information(self, "Успех", "Штраф успешно обновлен")
             else:
                 query = """INSERT INTO fines (ts_id, date, amount, description, status)
                           VALUES (%s, %s, %s, %s, %s)"""
-                Database.execute_query(query, (
-                    self.ts_combo.currentData(),
-                    self.date_input.date().toString("yyyy-MM-dd"),
-                    self.amount_input.value(),
-                    self.desc_input.currentText(),
-                    self.status_combo.currentData()
-                ), fetch=False)
+                Database.execute_query(query, (ts_id, date_val, amount, description, status), fetch=False)
                 QMessageBox.information(self, "Успех", "Штраф успешно добавлен")
             self.accept()
         except Exception as e:

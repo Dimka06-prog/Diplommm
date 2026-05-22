@@ -6,6 +6,7 @@ from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, ROLE_DRIVER
+from src.validation import Validator, ValidationError
 import bcrypt
 
 class ProfilePage(QWidget):
@@ -146,8 +147,11 @@ class ProfilePage(QWidget):
             QMessageBox.warning(self, "Ошибка", "Пароли не совпадают")
             return
 
-        if len(new) < 3:
-            QMessageBox.warning(self, "Ошибка", "Пароль должен быть минимум 3 символа")
+        # Валидация нового пароля
+        try:
+            Validator.validate_password(new)
+        except ValidationError as e:
+            QMessageBox.warning(self, "Ошибка валидации", str(e))
             return
 
         try:

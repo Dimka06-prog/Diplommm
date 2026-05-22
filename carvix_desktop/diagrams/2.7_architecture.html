@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рисунок 2.7 — Трёхуровневая клиент-серверная архитектура информационной системы Carvix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .diagram-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1C1B17;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .layer {
+            border: 3px solid #1C1B17;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .layer.presentation {
+            background: linear-gradient(135deg, #FBF8F3 0%, #ECE2CE 100%);
+        }
+        .layer.business {
+            background: linear-gradient(135deg, #4A7C59 0%, #3F3D38 100%);
+            color: white;
+        }
+        .layer.data {
+            background: linear-gradient(135deg, #1C1B17 0%, #3F3D38 100%);
+            color: white;
+        }
+        .layer-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .components {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .component {
+            background: white;
+            border: 2px solid #1C1B17;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            min-width: 120px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .layer.business .component {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+            color: white;
+        }
+        .layer.data .component {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+            color: white;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 30px;
+            color: #4A7C59;
+        }
+        .layer.business .arrow {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Рисунок 2.7 — Трёхуровневая клиент-серверная архитектура информационной системы Carvix</h1>
+        
+        <div class="architecture">
+            <div class="layer presentation">
+                <div class="layer-title">Presentation Layer (Desktop Application)</div>
+                <div class="components">
+                    <div class="component">AuthDialog (Вход)</div>
+                    <div class="component">MainWindow (Навигация)</div>
+                    <div class="component">Pages (CRUD/View)</div>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ HTTP/REST API</div>
+            
+            <div class="layer business">
+                <div class="layer-title">Business Layer (Web Server - FastAPI)</div>
+                <div class="components">
+                    <div class="component">Auth Module (JWT)</div>
+                    <div class="component">CRUD Module (Drivers/TS)</div>
+                    <div class="component">Report Mod (Analytics)</div>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ SQL</div>
+            
+            <div class="layer data">
+                <div class="layer-title">Data Layer (PostgreSQL Database)</div>
+                <div class="components">
+                    <div class="component">sotrudnik</div>
+                    <div class="component">transportnoe_sredstvo</div>
+                    <div class="component">fines</div>
+                    <div class="component">schedule</div>
+                    <div class="component">maintenance</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

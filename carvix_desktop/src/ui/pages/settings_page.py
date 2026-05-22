@@ -6,6 +6,7 @@ from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_SYSTEM_SETTINGS
+from src.settings_manager import SettingsManager
 from config import COLORS
 
 class SettingsPage(QWidget):
@@ -102,7 +103,23 @@ class SettingsPage(QWidget):
         layout.addStretch()
 
     def refresh_data(self):
-        self.refresh_db_info()
+        """Загрузка настроек из базы данных"""
+        try:
+            # Load settings from database
+            company_name = SettingsManager.get_setting('company_name', 'Carvix')
+            maintenance_days = SettingsManager.get_setting('maintenance_reminder_days', '30')
+            insurance_days = SettingsManager.get_setting('insurance_reminder_days', '30')
+            auto_sync = SettingsManager.get_setting('auto_sync_gibdd', 'false')
+
+            # Set values to inputs
+            self.company_name_input.setText(company_name)
+            self.maintenance_days_input.setValue(int(maintenance_days))
+            self.insurance_days_input.setValue(int(insurance_days))
+            self.auto_sync_checkbox.setChecked(auto_sync == 'true')
+
+            self.refresh_db_info()
+        except Exception as e:
+            self.db_info_label.setText(f"Ошибка загрузки настроек: {str(e)}")
 
     def refresh_db_info(self):
         try:
@@ -135,8 +152,12 @@ class SettingsPage(QWidget):
             insurance_days = self.insurance_days_input.value()
             auto_sync = self.auto_sync_checkbox.isChecked()
 
-            # In a real application, these would be saved to a settings table or config file
-            # For now, just show a success message
+            # Save settings to database
+            SettingsManager.set_setting('company_name', company_name)
+            SettingsManager.set_setting('maintenance_reminder_days', str(maintenance_days))
+            SettingsManager.set_setting('insurance_reminder_days', str(insurance_days))
+            SettingsManager.set_setting('auto_sync_gibdd', str(auto_sync).lower())
+
             QMessageBox.information(self, "Успех",
                 f"Настройки сохранены:\n"
                 f"Компания: {company_name}\n"

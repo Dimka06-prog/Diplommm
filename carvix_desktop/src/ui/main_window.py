@@ -1,17 +1,48 @@
-from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QFrame, QStackedWidget, QLabel, QPushButton,
-                             QScrollArea, QGridLayout, QMessageBox)
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+                             QLabel, QPushButton, QStackedWidget, QSizePolicy, QMainWindow)
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QFont
+from src.database import Database
 from src.styles import get_header_font, get_font, STYLESHEET
 from src.permissions import get_menu_items, get_role_name
+from src.settings_manager import SettingsManager
+from src.logger import logger
 from config import APP_NAME, COLORS
 
 class MainWindow(QMainWindow):
+    logout_requested = pyqtSignal()
+
     def __init__(self, user_data):
         super().__init__()
         self.user_data = user_data
+        self.inactivity_timer = QTimer()
+        self.inactivity_timer.timeout.connect(self.handle_session_timeout)
+        self.reset_inactivity_timer()
         self.init_ui()
+
+    def reset_inactivity_timer(self):
+        """Сброс таймера бездействия"""
+        timeout_minutes = int(SettingsManager.get_setting('session_timeout_minutes', '60'))
+        timeout_ms = timeout_minutes * 60 * 1000  # Convert to milliseconds
+        self.inactivity_timer.stop()
+        self.inactivity_timer.start(timeout_ms)
+
+    def handle_session_timeout(self):
+        """Обработка тайм-аута сессии"""
+        logger.log_logout(self.user_data['id'], self.user_data['login'])
+        QMessageBox.warning(self, "Тайм-аут сессии",
+                          "Вы были автоматически вышли из-за бездействия.")
+        self.logout()
+
+    def mousePressEvent(self, event):
+        """Обработка нажатия мыши для сброса таймера"""
+        self.reset_inactivity_timer()
+        super().mousePressEvent(event)
+
+    def keyPressEvent(self, event):
+        """Обработка нажатия клавиши для сброса таймера"""
+        self.reset_inactivity_timer()
+        super().keyPressEvent(event)
         
     def init_ui(self):
         self.setWindowTitle(APP_NAME)
@@ -199,8 +230,10 @@ class MainWindow(QMainWindow):
             current_widget.refresh_data()
             
     def logout(self):
-        # Close the main window and let the main.py handle showing auth dialog
-        self.close()
+        # Emit signal to let main.py handle logout
+        self.inactivity_timer.stop()
+        logger.log_logout(self.user_data['id'], self.user_data['login'])
+        self.logout_requested.emit()
 
     def closeEvent(self, event):
         from src.database import Database

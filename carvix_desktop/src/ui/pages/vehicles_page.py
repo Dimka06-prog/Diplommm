@@ -7,6 +7,7 @@ from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_ADD_VEHICLE, PERMISSION_EDIT_VEHICLE, PERMISSION_DELETE_VEHICLE
+from src.validation import Validator, ValidationError
 
 class VehiclesPage(QWidget):
     def __init__(self, user_data):
@@ -34,6 +35,16 @@ class VehiclesPage(QWidget):
             header_layout.addWidget(add_btn)
 
         layout.addLayout(header_layout)
+
+        # Search bar
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("Поиск:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Введите гос. номер или VIN...")
+        self.search_input.textChanged.connect(self.filter_table)
+        search_layout.addWidget(self.search_input)
+        search_layout.addStretch()
+        layout.addLayout(search_layout)
         
         self.table = QTableWidget()
         self.table.setColumnCount(8)
@@ -61,29 +72,61 @@ class VehiclesPage(QWidget):
         
     def refresh_data(self):
         try:
-            query = """SELECT ts.id, ts.gos_nomer, ts.invent_nomer, ts.probeg, ts.tekuschee_sostoyanie, ts.vin,
-                       ma.nazvanie as marka_name, mo.nazvanie as model_name, s.fio as driver_fio
-                       FROM transportnoe_sredstvo ts
-                       LEFT JOIN model mo ON ts.model_id = mo.id
-                       LEFT JOIN marka ma ON mo.marka_id = ma.id
-                       LEFT JOIN sotrudnik s ON ts.assigned_driver_id = s.id
-                       ORDER BY ts.gos_nomer"""
+            query = """SELECT t.id, t.gos_nomer, t.invent_nomer, t.probeg, t.vin,
+                       t.tekuschee_sostoyanie, m.nazvanie as marka_name,
+                       mo.nazvanie as model_name, s.fio as driver_fio
+                       FROM transportnoe_sredstvo t
+                       LEFT JOIN model mo ON t.model_id = mo.id
+                       LEFT JOIN marka m ON mo.marka_id = m.id
+                       LEFT JOIN sotrudnik s ON t.assigned_driver_id = s.id
+                       ORDER BY t.gos_nomer"""
             vehicles = Database.execute_query(query)
+            self.vehicles_data = vehicles  # Store for filtering
             self.table.setRowCount(len(vehicles))
-            
-            for row, vehicle in enumerate(vehicles):
-                self.table.setItem(row, 0, QTableWidgetItem(vehicle['gos_nomer']))
-                self.table.setItem(row, 1, QTableWidgetItem(vehicle['invent_nomer']))
-                self.table.setItem(row, 2, QTableWidgetItem(vehicle.get('marka_name', '-')))
-                self.table.setItem(row, 3, QTableWidgetItem(vehicle.get('model_name', '-')))
-                self.table.setItem(row, 4, QTableWidgetItem(vehicle.get('vin', '-')))
-                self.table.setItem(row, 5, QTableWidgetItem(str(vehicle.get('probeg', 0))))
-                self.table.setItem(row, 6, QTableWidgetItem(vehicle.get('tekuschee_sostoyanie', '-')))
-                self.table.setItem(row, 7, QTableWidgetItem(vehicle.get('driver_fio', 'Не назначен')))
-                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, vehicle['id'])
+
+            for row, veh in enumerate(vehicles):
+                self.table.setItem(row, 0, QTableWidgetItem(veh['gos_nomer']))
+                self.table.setItem(row, 1, QTableWidgetItem(veh['invent_nomer']))
+                self.table.setItem(row, 2, QTableWidgetItem(veh.get('marka_name', '-')))
+                self.table.setItem(row, 3, QTableWidgetItem(veh.get('model_name', '-')))
+                self.table.setItem(row, 4, QTableWidgetItem(veh['vin']))
+                self.table.setItem(row, 5, QTableWidgetItem(str(veh['probeg'])))
+                self.table.setItem(row, 6, QTableWidgetItem(veh['tekuschee_sostoyanie']))
+                self.table.setItem(row, 7, QTableWidgetItem(veh.get('driver_fio', '-')))
+                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh['id'])
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
-            
+            pass
+
+    def filter_table(self, search_text):
+        """Фильтрация таблицы по поисковому запросу"""
+        if not hasattr(self, 'vehicles_data'):
+            return
+
+        search_text = search_text.lower()
+        filtered_vehicles = []
+
+        for veh in self.vehicles_data:
+            gos_nomer = veh['gos_nomer'].lower()
+            vin = veh['vin'].lower()
+            invent_nomer = veh['invent_nomer'].lower()
+            marka = veh.get('marka_name', '').lower()
+
+            if search_text in gos_nomer or search_text in vin or search_text in invent_nomer or search_text in marka:
+                filtered_vehicles.append(veh)
+
+        self.table.setRowCount(len(filtered_vehicles))
+
+        for row, veh in enumerate(filtered_vehicles):
+            self.table.setItem(row, 0, QTableWidgetItem(veh['gos_nomer']))
+            self.table.setItem(row, 1, QTableWidgetItem(veh['invent_nomer']))
+            self.table.setItem(row, 2, QTableWidgetItem(veh.get('marka_name', '-')))
+            self.table.setItem(row, 3, QTableWidgetItem(veh.get('model_name', '-')))
+            self.table.setItem(row, 4, QTableWidgetItem(veh['vin']))
+            self.table.setItem(row, 5, QTableWidgetItem(str(veh['probeg'])))
+            self.table.setItem(row, 6, QTableWidgetItem(veh['tekuschee_sostoyanie']))
+            self.table.setItem(row, 7, QTableWidgetItem(veh.get('driver_fio', '-')))
+            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh['id'])
+
     def open_add_vehicle_dialog(self):
         dialog = VehicleDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
@@ -247,30 +290,39 @@ class VehicleDialog(QDialog):
         layout.addLayout(btn_layout)
         
     def save_vehicle(self):
-        gos_nomer = self.gos_nomer_input.text().strip()
-        invent_nomer = self.invent_nomer_input.text().strip()
-        vin = self.vin_input.text().strip()
-        probeg = self.probeg_input.value()
-        marka_id = self.marka_combo.currentData()
-        dept_id = self.dept_combo.currentData()
-        driver_id = self.driver_combo.currentData()
-        status = self.status_combo.currentData()
-        
-        if not gos_nomer or not invent_nomer:
-            QMessageBox.warning(self, "Ошибка", "Заполните обязательные поля")
-            return
-        
         try:
+            gos_nomer = self.gos_nomer_input.text().strip()
+            invent_nomer = self.invent_nomer_input.text().strip()
+            vin = self.vin_input.text().strip()
+            probeg = self.probeg_input.value()
+            model_id = self.model_combo.currentData()
+            podrazdelenie_id = self.dept_combo.currentData()
+            driver_id = self.driver_combo.currentData()
+            status = self.status_combo.currentData()
+
+            # Валидация
+            try:
+                Validator.validate_gos_nomer(gos_nomer)
+                Validator.validate_vin(vin)
+                Validator.validate_probeg(probeg)
+            except ValidationError as e:
+                QMessageBox.warning(self, "Ошибка валидации", str(e))
+                return
+
             if self.edit_mode:
-                query = """UPDATE transportnoe_sredstvo SET gos_nomer = %s, invent_nomer = %s, vin = %s, probeg = %s, 
-                          model_id = %s, podrazdelenie_id = %s, tekuschee_sostoyanie = %s, assigned_driver_id = %s WHERE id = %s"""
-                Database.execute_query(query, (gos_nomer, invent_nomer, vin, probeg, marka_id, dept_id, status, driver_id, self.vehicle_data['id']), fetch=False)
+                query = """UPDATE transportnoe_sredstvo SET gos_nomer = %s, invent_nomer = %s, vin = %s,
+                          probeg = %s, model_id = %s, podrazdelenie_id = %s, assigned_driver_id = %s,
+                          tekuschee_sostoyanie = %s WHERE id = %s"""
+                Database.execute_query(query, (gos_nomer, invent_nomer, vin, probeg, model_id,
+                                               podrazdelenie_id, driver_id, status, self.vehicle_data['id']), fetch=False)
                 QMessageBox.information(self, "Успех", "ТС успешно обновлено")
             else:
-                query = """INSERT INTO transportnoe_sredstvo (gos_nomer, invent_nomer, vin, probeg, model_id, podrazdelenie_id, tekuschee_sostoyanie, assigned_driver_id)
+                query = """INSERT INTO transportnoe_sredstvo (gos_nomer, invent_nomer, vin, probeg, model_id,
+                          podrazdelenie_id, assigned_driver_id, tekuschee_sostoyanie)
                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-                Database.execute_query(query, (gos_nomer, invent_nomer, vin, probeg, marka_id, dept_id, status, driver_id), fetch=False)
+                Database.execute_query(query, (gos_nomer, invent_nomer, vin, probeg, model_id,
+                                               podrazdelenie_id, driver_id, status), fetch=False)
                 QMessageBox.information(self, "Успех", "ТС успешно добавлено")
             self.accept()
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка сохранения: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", str(e))

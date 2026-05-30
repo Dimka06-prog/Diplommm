@@ -1,9 +1,8 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QTableWidget, QTableWidgetItem,
                              QHeaderView, QDialog, QFormLayout, QLineEdit, QComboBox,
                              QMessageBox, QDateEdit, QMenu, QDoubleSpinBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, ROLE_DRIVER, PERMISSION_ADD_FINE, PERMISSION_EDIT_FINE, PERMISSION_DELETE_FINE
@@ -16,7 +15,7 @@ class FinesPage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
         
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -37,19 +36,52 @@ class FinesPage(QWidget):
             header_layout.addWidget(add_btn)
 
         if has_permission(self.user_data['rol_id'], 'view_reports'):
-            sync_btn = QPushButton("🔄 Синхронизировать с ГИБДД")
+            sync_btn = QPushButton("Синхронизировать с ГИБДД")
             sync_btn.setObjectName("secondary_btn")
             sync_btn.clicked.connect(self.sync_with_gibdd)
             header_layout.addWidget(sync_btn)
         layout.addLayout(header_layout)
         
+        # Search bar
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("Поиск:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Введите гос. номер или описание...")
+        self.search_input.textChanged.connect(self.filter_table)
+        search_layout.addWidget(self.search_input)
+        search_layout.addStretch()
+        layout.addLayout(search_layout)
+        
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ТС", "Дата", "Сумма", "Описание", "Постановление", "Статус"])
         header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.table.setStyleSheet("QTableWidget { background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E2E0; }")
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E2E0;
+                gridline-color: #EFEFEE;
+            }
+            QTableWidget::item {
+                padding: 8px 12px;
+            }
+            QHeaderView::section {
+                background: #F7F7F7;
+                color: #3F3D38;
+                padding: 10px 12px;
+                border: none;
+                border-bottom: 1px solid #E2E2E0;
+                font-weight: 600;
+                font-size: 13px;
+            }
+        """)
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.show_context_menu)
         layout.addWidget(self.table)
@@ -72,18 +104,48 @@ class FinesPage(QWidget):
                            ORDER BY f.date DESC"""
                 fines = Database.execute_query(query)
 
+            self.fines_data = fines  # Store for filtering
             self.table.setRowCount(len(fines))
 
             for row, fine in enumerate(fines):
-                self.table.setItem(row, 0, QTableWidgetItem(fine.get('gos_nomer', '-')))
-                self.table.setItem(row, 1, QTableWidgetItem(str(fine['date'])))
-                self.table.setItem(row, 2, QTableWidgetItem(str(fine['amount']) + " руб."))
-                self.table.setItem(row, 3, QTableWidgetItem(fine['description']))
-                self.table.setItem(row, 4, QTableWidgetItem(fine.get('postanovlenie_number', '-')))
-                self.table.setItem(row, 5, QTableWidgetItem(fine['status']))
-                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, fine['id'])
+                self.table.setItem(row, 0, QTableWidgetItem(fine.get('gos_nomer') or '-'))
+                self.table.setItem(row, 1, QTableWidgetItem(str(fine.get('date') or '-')))
+                self.table.setItem(row, 2, QTableWidgetItem(str(fine.get('amount') or 0) + " руб."))
+                self.table.setItem(row, 3, QTableWidgetItem(fine.get('description') or '-'))
+                self.table.setItem(row, 4, QTableWidgetItem(fine.get('postanovlenie_number') or '-'))
+                self.table.setItem(row, 5, QTableWidgetItem(fine.get('status') or '-'))
+                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, fine.get('id'))
         except Exception as e:
-            pass
+            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
+
+    def filter_table(self, search_text):
+        """Фильтрация таблицы по поисковому запросу"""
+        if not hasattr(self, 'fines_data'):
+            return
+
+        search_text = search_text.lower()
+        filtered_fines = []
+
+        for fine in self.fines_data:
+            gos_nomer = (fine.get('gos_nomer') or '').lower()
+            description = (fine.get('description') or '').lower()
+            status = (fine.get('status') or '').lower()
+            postanovlenie = (fine.get('postanovlenie_number') or '').lower()
+
+            if (search_text in gos_nomer or search_text in description or
+                search_text in status or search_text in postanovlenie):
+                filtered_fines.append(fine)
+
+        self.table.setRowCount(len(filtered_fines))
+
+        for row, fine in enumerate(filtered_fines):
+            self.table.setItem(row, 0, QTableWidgetItem(fine.get('gos_nomer') or '-'))
+            self.table.setItem(row, 1, QTableWidgetItem(str(fine.get('date') or '-')))
+            self.table.setItem(row, 2, QTableWidgetItem(str(fine.get('amount') or 0) + " руб."))
+            self.table.setItem(row, 3, QTableWidgetItem(fine.get('description') or '-'))
+            self.table.setItem(row, 4, QTableWidgetItem(fine.get('postanovlenie_number') or '-'))
+            self.table.setItem(row, 5, QTableWidgetItem(fine.get('status') or '-'))
+            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, fine.get('id'))
             
     def open_add_fine_dialog(self):
         dialog = FineDialog(self)
@@ -103,9 +165,9 @@ class FinesPage(QWidget):
 
         menu = QMenu()
         if has_permission(self.user_data['rol_id'], PERMISSION_EDIT_FINE):
-            edit_action = menu.addAction("✏️ Редактировать")
+            edit_action = menu.addAction("Редактировать")
         if has_permission(self.user_data['rol_id'], PERMISSION_DELETE_FINE):
-            delete_action = menu.addAction("🗑️ Удалить")
+            delete_action = menu.addAction("Удалить")
 
         action = menu.exec(self.table.mapToGlobal(position))
 
@@ -143,8 +205,10 @@ class FinesPage(QWidget):
             synced_total = 0
             
             for vehicle in vehicles:
-                synced = api.sync_fines_to_db(Database, vehicle['id'], vehicle['gos_nomer'])
-                synced_total += synced
+                gos_nomer = vehicle.get('gos_nomer')
+                if gos_nomer:
+                    synced = api.sync_fines_to_db(Database, vehicle.get('id'), gos_nomer)
+                    synced_total += synced
             
             if synced_total > 0:
                 QMessageBox.information(self, "Успех", f"Синхронизировано {synced_total} штрафов")
@@ -218,7 +282,8 @@ class FineDialog(QDialog):
             vehicles = Database.execute_query("SELECT id, gos_nomer FROM transportnoe_sredstvo")
             for veh in vehicles:
                 self.ts_combo.addItem(veh['gos_nomer'], veh['id'])
-        except: pass
+        except Exception as e:
+            print(f"Ошибка загрузки ТС: {e}")
         
         form_layout.addRow("ТС:", self.ts_combo)
         form_layout.addRow("Дата:", self.date_input)

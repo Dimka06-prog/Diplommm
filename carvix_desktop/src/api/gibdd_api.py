@@ -8,15 +8,21 @@ class GibddAPI:
         self.base_url = "https://api.gibdd.ru"
         
     def check_fines_by_vin(self, vin: str) -> List[Dict]:
+        """Проверка штрафов по VIN (заглушка для реальной интеграции с ГИБДД)"""
         try:
+            # TODO: Реализовать реальную интеграцию с API ГИБДД
             return []
-        except:
+        except Exception as e:
+            print(f"Ошибка проверки штрафов по VIN: {e}")
             return []
-    
+
     def check_fines_by_gos_number(self, gos_nomer: str) -> List[Dict]:
+        """Проверка штрафов по гос. номеру (заглушка для реальной интеграции с ГИБДД)"""
         try:
+            # TODO: Реализовать реальную интеграцию с API ГИБДД
             return []
-        except:
+        except Exception as e:
+            print(f"Ошибка проверки штрафов по гос. номеру: {e}")
             return []
     
     def sync_fines_to_db(self, db_connection, vehicle_id: int, gos_nomer: str) -> int:
@@ -30,17 +36,19 @@ class NotificationSystem:
         try:
             query = """SELECT id, gos_nomer, to_expiry FROM transportnoe_sredstvo
                        WHERE to_expiry IS NOT NULL
-                       AND to_expiry <= CURRENT_DATE + INTERVAL '%s days'""" % days_before
-            return db_connection.execute_query(query)
-        except:
+                       AND to_expiry <= CURRENT_DATE + INTERVAL '%s days'"""
+            return db_connection.execute_query(query, (days_before,))
+        except Exception as e:
+            print(f"Ошибка проверки ТО: {e}")
             return []
-    
+
     @staticmethod
     def check_insurance_due(db_connection, days_before: int = 30) -> List[Dict]:
         try:
             query = """SELECT id, gos_nomer, insurance_expiry FROM transportnoe_sredstvo
                        WHERE insurance_expiry IS NOT NULL
-                       AND insurance_expiry <= CURRENT_DATE + INTERVAL '%s days'""" % days_before
-            return db_connection.execute_query(query)
-        except:
+                       AND insurance_expiry <= CURRENT_DATE + INTERVAL '%s days'"""
+            return db_connection.execute_query(query, (days_before,))
+        except Exception as e:
+            print(f"Ошибка проверки страховки: {e}")
             return []

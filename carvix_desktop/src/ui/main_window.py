@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(user_frame)
         
         # Logout button
-        logout_btn = QPushButton("🚪  Выйти")
+        logout_btn = QPushButton("Выйти")
         logout_btn.setObjectName("sidebar_btn")
         logout_btn.clicked.connect(self.logout)
         sidebar_layout.addWidget(logout_btn)
@@ -153,39 +153,21 @@ class MainWindow(QMainWindow):
         self.init_pages()
         
     def init_pages(self):
-        from src.ui.pages.dashboard_page import DashboardPage
-        from src.ui.pages.drivers_page import DriversPage
-        from src.ui.pages.vehicles_page import VehiclesPage
-        from src.ui.pages.schedule_page import SchedulePage
-        from src.ui.pages.maintenance_page import MaintenancePage
-        from src.ui.pages.fines_page import FinesPage
-        from src.ui.pages.reports_page import ReportsPage
-        from src.ui.pages.profile_page import ProfilePage
-        from src.ui.pages.users_page import UsersPage
-        from src.ui.pages.settings_page import SettingsPage
+        # Lazy load pages - only initialize when needed
+        self.pages_dict = {}
+        self.page_classes = {
+            "dashboard": ("src.ui.pages.dashboard_page", "DashboardPage"),
+            "drivers": ("src.ui.pages.drivers_page", "DriversPage"),
+            "vehicles": ("src.ui.pages.vehicles_page", "VehiclesPage"),
+            "schedule": ("src.ui.pages.schedule_page", "SchedulePage"),
+            "maintenance": ("src.ui.pages.maintenance_page", "MaintenancePage"),
+            "fines": ("src.ui.pages.fines_page", "FinesPage"),
+            "reports": ("src.ui.pages.reports_page", "ReportsPage"),
+            "profile": ("src.ui.pages.profile_page", "ProfilePage"),
+            "users": ("src.ui.pages.users_page", "UsersPage"),
+            "settings": ("src.ui.pages.settings_page", "SettingsPage"),
+        }
 
-        self.dashboard_page = DashboardPage(self.user_data)
-        self.drivers_page = DriversPage(self.user_data)
-        self.vehicles_page = VehiclesPage(self.user_data)
-        self.schedule_page = SchedulePage(self.user_data)
-        self.maintenance_page = MaintenancePage(self.user_data)
-        self.fines_page = FinesPage(self.user_data)
-        self.reports_page = ReportsPage(self.user_data)
-        self.profile_page = ProfilePage(self.user_data)
-        self.users_page = UsersPage(self.user_data)
-        self.settings_page = SettingsPage(self.user_data)
-
-        self.pages.addWidget(self.dashboard_page)
-        self.pages.addWidget(self.drivers_page)
-        self.pages.addWidget(self.vehicles_page)
-        self.pages.addWidget(self.schedule_page)
-        self.pages.addWidget(self.maintenance_page)
-        self.pages.addWidget(self.fines_page)
-        self.pages.addWidget(self.reports_page)
-        self.pages.addWidget(self.profile_page)
-        self.pages.addWidget(self.users_page)
-        self.pages.addWidget(self.settings_page)
-        
         # Set default page
         self.navigate_to("dashboard")
         
@@ -193,7 +175,7 @@ class MainWindow(QMainWindow):
         # Update navigation buttons
         for key, btn in self.nav_buttons.items():
             btn.setChecked(key == page_key)
-        
+
         # Update page title
         titles = {
             "dashboard": "Дашборд",
@@ -209,33 +191,36 @@ class MainWindow(QMainWindow):
         }
         self.page_title.setText(titles.get(page_key, ""))
 
+        # Lazy load page if not already loaded
+        if page_key not in self.pages_dict:
+            module_name, class_name = self.page_classes[page_key]
+            module = __import__(module_name, fromlist=[class_name])
+            page_class = getattr(module, class_name)
+            page = page_class(self.user_data)
+            self.pages.addWidget(page)
+            self.pages_dict[page_key] = page
+
         # Show page
-        page_index = {
-            "dashboard": 0,
-            "drivers": 1,
-            "vehicles": 2,
-            "schedule": 3,
-            "maintenance": 4,
-            "fines": 5,
-            "reports": 6,
-            "profile": 7,
-            "users": 8,
-            "settings": 9
-        }
-        self.pages.setCurrentIndex(page_index.get(page_key, 0))
-        
-        # Refresh page data
-        current_widget = self.pages.currentWidget()
-        if hasattr(current_widget, 'refresh_data'):
-            current_widget.refresh_data()
+        page = self.pages_dict[page_key]
+        self.pages.setCurrentWidget(page)
+
+        # Refresh page data (deferred to allow UI to render first)
+        if hasattr(page, 'refresh_data'):
+            def refresh_if_current():
+                if self.pages.currentWidget() == page:
+                    page.refresh_data()
+            QTimer.singleShot(0, refresh_if_current)
             
     def logout(self):
         # Emit signal to let main.py handle logout
+        self.is_logging_out = True
         self.inactivity_timer.stop()
         logger.log_logout(self.user_data['id'], self.user_data['login'])
         self.logout_requested.emit()
 
     def closeEvent(self, event):
         from src.database import Database
-        Database.close_all_connections()
+        # Only close connections on full app close, not on logout
+        if not getattr(self, 'is_logging_out', False):
+            Database.close_all_connections()
         event.accept()

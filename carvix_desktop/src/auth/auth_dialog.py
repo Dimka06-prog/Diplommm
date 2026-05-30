@@ -102,6 +102,29 @@ class AuthDialog(QDialog):
         form_layout.addWidget(password_label)
         form_layout.addWidget(self.password_input)
 
+        # Show/Hide password toggle
+        password_container = QHBoxLayout()
+        password_container.setContentsMargins(0, 0, 0, 0)
+        
+        self.show_password_btn = QPushButton("Показать")
+        self.show_password_btn.setFixedHeight(30)
+        self.show_password_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #6F6D67;
+                border: none;
+                font-size: 12px;
+                padding: 0 10px;
+            }
+            QPushButton:hover {
+                color: #1C1B17;
+            }
+        """)
+        self.show_password_btn.clicked.connect(self.toggle_password_visibility)
+        password_container.addStretch()
+        password_container.addWidget(self.show_password_btn)
+        form_layout.addLayout(password_container)
+
         layout.addLayout(form_layout)
         
         # Login button
@@ -151,6 +174,15 @@ class AuthDialog(QDialog):
         
         # Enter key support
         self.password_input.returnPressed.connect(self.authenticate)
+
+    def toggle_password_visibility(self):
+        """Toggle password visibility"""
+        if self.password_input.echoMode() == QLineEdit.EchoMode.Password:
+            self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.show_password_btn.setText("Скрыть")
+        else:
+            self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+            self.show_password_btn.setText("Показать")
         
     def authenticate(self):
         login = self.login_input.text().strip()
@@ -168,7 +200,7 @@ class AuthDialog(QDialog):
                        s.podrazdelenie_id, p.nazvanie as podrazdelenie_name
                 FROM sotrudnik s
                 JOIN rol r ON s.rol_id = r.id
-                JOIN podrazdelenie p ON s.podrazdelenie_id = p.id
+                LEFT JOIN podrazdelenie p ON s.podrazdelenie_id = p.id
                 WHERE s.login = %s
             """
             result = Database.execute_query(query, (login,))
@@ -198,6 +230,7 @@ class AuthDialog(QDialog):
                 self.accept()
             else:
                 logger.log_login(user['id'], login, user['rol_name'], False)
+                QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
 
         except Exception as e:
             logger.log_error(0, str(e), "Authentication")

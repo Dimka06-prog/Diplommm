@@ -3,7 +3,6 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QHeaderView, QDialog, QFormLayout, QLineEdit, QComboBox,
                              QMessageBox, QMenu)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_MANAGE_USERS
@@ -15,7 +14,7 @@ class UsersPage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -86,14 +85,14 @@ class UsersPage(QWidget):
             self.table.setRowCount(len(users))
 
             for row, user in enumerate(users):
-                self.table.setItem(row, 0, QTableWidgetItem(user['fio']))
-                self.table.setItem(row, 1, QTableWidgetItem(user['login']))
-                self.table.setItem(row, 2, QTableWidgetItem(user['rol_name']))
-                self.table.setItem(row, 3, QTableWidgetItem(user.get('license_number', '-')))
-                self.table.setItem(row, 4, QTableWidgetItem(user.get('phone', '-')))
-                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, user['id'])
+                self.table.setItem(row, 0, QTableWidgetItem(user.get('fio') or '-'))
+                self.table.setItem(row, 1, QTableWidgetItem(user.get('login') or '-'))
+                self.table.setItem(row, 2, QTableWidgetItem(user.get('rol_name') or '-'))
+                self.table.setItem(row, 3, QTableWidgetItem(user.get('license_number') or '-'))
+                self.table.setItem(row, 4, QTableWidgetItem(user.get('phone') or '-'))
+                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, user.get('id'))
         except Exception as e:
-            pass
+            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
 
     def open_add_user_dialog(self):
         dialog = UserDialog(self)
@@ -111,8 +110,8 @@ class UsersPage(QWidget):
         user_id = item.data(Qt.ItemDataRole.UserRole)
 
         menu = QMenu()
-        edit_action = menu.addAction("✏️ Редактировать")
-        delete_action = menu.addAction("🗑️ Удалить")
+        edit_action = menu.addAction("Редактировать")
+        delete_action = menu.addAction("Удалить")
 
         action = menu.exec(self.table.mapToGlobal(position))
 

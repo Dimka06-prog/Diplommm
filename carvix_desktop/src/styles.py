@@ -52,7 +52,7 @@ QFrame#header {
 }
 
 QLabel#header_title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Georgia', serif;
     font-size: 24px;
     font-weight: 600;
     color: #1C1B17;
@@ -189,7 +189,7 @@ QHeaderView::section:hover {
 
 /* Labels */
 QLabel#section_title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Georgia', serif;
     font-size: 28px;
     font-weight: 600;
     color: #1C1B17;
@@ -213,7 +213,7 @@ QLabel#value_text {
 }
 
 QLabel#stat_value {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Georgia', serif;
     font-size: 32px;
     font-weight: 600;
     color: #1C1B17;
@@ -287,7 +287,7 @@ QDialog#auth_dialog {
 }
 
 QLabel#auth_title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Georgia', serif;
     font-size: 36px;
     font-weight: 600;
     color: #1C1B17;
@@ -375,11 +375,12 @@ def apply_stylesheet(app):
     app.setStyleSheet(STYLESHEET)
 
 def get_font(size=14, weight=QFont.Weight.Normal):
-    font = QFont('Manrope', size)
+    font = QFont()
+    font.setPointSize(size)
     font.setWeight(weight)
     return font
 
 def get_header_font(size=24):
-    font = QFont('Cormorant Garamond', size)
+    font = QFont('Georgia', size)
     font.setWeight(QFont.Weight.Bold)
     return font

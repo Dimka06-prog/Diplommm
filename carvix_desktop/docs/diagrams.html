@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приложение А — Диаграммы информационной системы Carvix</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg: #FBF8F3;
+            --card: #FFFFFF;
+            --text: #1C1B17;
+            --subtext: #3F3D38;
+            --border: #E2E2E0;
+            --accent: #4A7C59;
+            --danger: #B23A3A;
+            --warning: #e5a00d;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--subtext);
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        .diagram-section {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .diagram-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 8px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+        }
+        .diagram-desc {
+            font-size: 13px;
+            color: var(--subtext);
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            text-align: center;
+            overflow-x: auto;
+        }
+        .legend {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--subtext);
+        }
+        .legend strong { color: var(--text); }
+        .page-break {
+            page-break-before: always;
+            border-top: 1px dashed var(--border);
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+        @media print {
+            body { background: white; }
+            .diagram-section { box-shadow: none; border: 1px solid #ccc; }
+            .page-break { page-break-before: always; border: none; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1>Приложение А</h1>
+<p class="subtitle">Диаграммы информационной системы учета водителей и ТС Carvix</p>
+
+<!-- ==================== А.1 ==================== -->
+<div class="diagram-section">
+    <div class="diagram-title">Рисунок А.1 — Организационная структура транспортного подразделения предприятия</div>
+    <div class="diagram-desc">Показаны основные подразделения и должности, вовлеченные в процесс ТОиР</div>
+    <div class="mermaid">
+graph TB
+    subgraph "Предприятие"
+        DIR[Директор]
+    end
+    DIR --> GMECH[Главный механик]
+    DIR --> DISP[Диспетчер]
+    GMECH --> MECH1[Механик 1]
+    GMECH --> MECH2[Механик 2]
+    GMECH --> MECH3[Механик 3]
+    DISP --> DRV1[Водитель 1]
+    DISP --> DRV2[Водитель 2]
+    DISP --> DRV3[Водитель 3]
+    DISP --> DRV4[Водитель 4]
+    GMECH -.->|"Смета, отчеты"| ANAL[Аналитик]
+    DIR -.->|"Утверждение<br/>бюджета"| GMECH
+    style DIR fill:#B23A3A,color:#fff
+    style GMECH fill:#4A7C59,color:#fff
+    style DISP fill:#4A7C59,color:#fff
+    style ANAL fill:#e5a00d,color:#fff
+    </div>
+    <div class="legend">
+        <strong>Обозначения:</strong> Прямые линии — административное подчинение; пунктирные — информационные потоки.
+        Главный механик отвечает за ТОиР, диспетчер — за распределение смен и контроль водителей.
+    </div>
+</div>
+
+<!-- ==================== А.2 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.2 — Контекстная диаграмма IDEF0 текущего процесса учёта расходов на ТОиР</div>
+    <div class="diagram-desc">Модель AS-IS: процесс «Учет расходов на ТОиР» в текущем (доавтоматизированном) состоянии</div>
+    <div class="mermaid">
+flowchart LR
+    A["Учет расходов на ТОиР A-0"]
+
+    IN1["Заявка на ремонт"] --> A
+    IN2["Накладная на запчасти"] --> A
+    IN3["Табель рабочего времени"] --> A
+    CTRL1["Нормативы ГОСТ, СНиП"] -.-> A
+    CTRL2["План бюджета подразделения"] -.-> A
+    CTRL3["Приказы директора"] -.-> A
+    A --> OUT1["Отчет о затратах"]
+    A --> OUT2["Акт выполненных работ"]
+    A --> OUT3["Сводка по невыполнению бюджета"]
+    MECH["Механик (исполнитель)"] -.-> A
+    GMECH["Главный механик (контроль)"] -.-> A
+    BUHG["Бухгалтер (фин. учет)"] -.-> A
+
+    style A fill:#F5EFE3,stroke:#4A7C59,stroke-width:3px
+    style IN1 fill:#E8F5E9
+    style IN2 fill:#E8F5E9
+    style IN3 fill:#E8F5E9
+    style OUT1 fill:#FFF3E0
+    style OUT2 fill:#FFF3E0
+    style OUT3 fill:#FFF3E0
+    style CTRL1 fill:#E3F2FD
+    style CTRL2 fill:#E3F2FD
+    style CTRL3 fill:#E3F2FD
+    style MECH fill:#FCE4EC
+    style GMECH fill:#FCE4EC
+    style BUHG fill:#FCE4EC
+    </div>
+    <div class="legend">
+        <strong>Нотация IDEF0:</strong> Зелёные блоки слева — входы (Input);
+        синие сверху — управление (Control);
+        розовые снизу — механизмы (Mechanism);
+        оранжевые справа — выходы (Output).
+    </div>
+</div>
+
+<!-- ==================== А.3 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.3 — Концептуальная ER-диаграмма предметной области финансового учёта операций ТОиР</div>
+    <div class="diagram-desc">Chen-нотация: сущности предметной области и связи между ними</div>
+    <div class="mermaid">
+flowchart TB
+    TS[Транспортное средство]
+    SOT[Сотрудник]
+    ZAY[Заявка]
+    REM[Ремонт]
+    ZAP[Запчасть]
+    POST[Поставщик]
+    PR[Приход запчастей]
+    TR[Тип ремонта]
+    TAR[Тариф работ]
+    POD[Подразделение]
+    BUD[Бюджет]
+    PRR[Прочий расход]
+    FINE[Штраф]
+    GRAF[График работы]
+    ROL[Роль]
+
+    TS ---|1| R1{"подает"} ---|N| ZAY
+    SOT ---|1| R2{"создает"} ---|N| ZAY
+    ZAY ---|1| R3{"порождает"} ---|1| REM
+    SOT ---|N| R4{"выполняет"} ---|M| REM
+    REM ---|N| R5{"содержит"} ---|M| ZAP
+    POST ---|1| R6{"поставляет"} ---|N| PR
+    PR ---|1| R7{"включает"} ---|N| ZAP
+    TR ---|1| R8{"классифицирует"} ---|N| ZAY
+    TR ---|1| R9{"тарифицирует"} ---|N| TAR
+    POD ---|1| R10{"планирует"} ---|N| BUD
+    POD ---|1| R11{"владеет"} ---|N| TS
+    TS ---|1| R12{"имеет"} ---|N| PRR
+    SOT ---|1| R13{"работает"} ---|N| GRAF
+    TS ---|1| R14{"назначен"} ---|N| GRAF
+    TS ---|1| R15{"получает"} ---|N| FINE
+    SOT ---|1| R16{"назначен на"} ---|1| TS
+    POD ---|1| R17{"состоит из"} ---|N| SOT
+    ROL ---|1| R18{"определяет"} ---|N| SOT
+
+    style TS fill:#E8F5E9,stroke:#4A7C59
+    style SOT fill:#E8F5E9,stroke:#4A7C59
+    style ZAY fill:#E8F5E9,stroke:#4A7C59
+    style REM fill:#E8F5E9,stroke:#4A7C59
+    style ZAP fill:#E8F5E9,stroke:#4A7C59
+    style POST fill:#E8F5E9,stroke:#4A7C59
+    style PR fill:#E8F5E9,stroke:#4A7C59
+    style TR fill:#E8F5E9,stroke:#4A7C59
+    style TAR fill:#E8F5E9,stroke:#4A7C59
+    style POD fill:#E8F5E9,stroke:#4A7C59
+    style BUD fill:#E8F5E9,stroke:#4A7C59
+    style PRR fill:#E8F5E9,stroke:#4A7C59
+    style FINE fill:#E8F5E9,stroke:#4A7C59
+    style GRAF fill:#E8F5E9,stroke:#4A7C59
+    style ROL fill:#E8F5E9,stroke:#4A7C59
+    </div>
+    <div class="legend">
+        <strong>Обозначения Chen-нотации:</strong> | — обязательность, o — необязательность.
+        || — один, } — много. Ключевые атрибуты подчеркнуты.
+    </div>
+</div>
+
+<!-- ==================== А.4 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.4 — Диаграмма прецедентов (Use Case) информационной системы Carvix</div>
+    <div class="diagram-desc">Акторы системы и функциональные требования в нотации UML 2.5</div>
+    <div class="mermaid">
+flowchart LR
+    subgraph СИСТЕМА["Система Carvix"]
+        direction TB
+        UC1[UC1 Управление ТС]
+        UC2[UC2 Управление водителями]
+        UC3[UC3 Управление графиком работ]
+        UC4[UC4 ТО и ремонты]
+        UC5[UC5 Учет штрафов]
+        UC6[UC6 Формирование отчетов]
+        UC7[UC7 Администрирование системы]
+        UC8[UC8 JWT-аутентификация]
+        UC6 -.->|include| UC1
+        UC6 -.->|include| UC5
+        UC5 -.->|extend| UC4
+        UC8 -.->|include| UC7
+    end
+
+    DIR[Директор]
+    DISP[Диспетчер]
+    GMECH[Гл. механик]
+    MECH[Механик]
+    ANAL[Аналитик]
+    DRV[Водитель]
+
+    DIR --- UC1
+    DIR --- UC2
+    DIR --- UC3
+    DIR --- UC4
+    DIR --- UC5
+    DIR --- UC6
+    DIR --- UC7
+    DIR --- UC8
+
+    DISP --- UC1
+    DISP --- UC2
+    DISP --- UC3
+    DISP --- UC4
+    DISP --- UC5
+    DISP --- UC6
+    DISP --- UC7
+    DISP --- UC8
+
+    GMECH --- UC1
+    GMECH --- UC4
+    GMECH --- UC5
+    GMECH --- UC6
+    GMECH --- UC7
+    GMECH --- UC8
+
+    MECH --- UC4
+    MECH --- UC7
+    MECH --- UC8
+
+    ANAL --- UC6
+    ANAL --- UC7
+    ANAL --- UC8
+
+    DRV --- UC3
+    DRV --- UC5
+    DRV --- UC7
+    DRV --- UC8
+    </div>
+    <div class="legend">
+        <strong>UML Use Case по ГОСТ 19.701-90 / UML 2.5:</strong> Акторы — вне границы системы; прецеденты — внутри прямоугольника системы.
+        UC6 (Отчеты) включает UC1 и UC5 (include). UC5 расширяет UC4 (extend).
+        Детальная декомпозиция прецедентов приведена в таблице функциональных требований.
+    </div>
+</div>
+
+<!-- ==================== А.5 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.5 — Контекстная диаграмма IDEF0 уровня A0 модуля Carvix</div>
+    <div class="diagram-desc">Модель TO-BE: система Carvix как черный ящик с внешними связями</div>
+    <div class="mermaid">
+flowchart LR
+    A0["Автоматизированный учет ТОиР A-0 Carvix"]
+
+    IN1["Данные о ТС (гос. номер, VIN, пробег)"] --> A0
+    IN2["Данные о водителях (ФИО, удостоверение)"] --> A0
+    IN3["Заявки на ремонт / ТО"] --> A0
+    IN4["Штрафы от ГИБДД (API)"] --> A0
+    CTRL1["Правила ГИБДД / СТО"] -.-> A0
+    CTRL2["Бюджет предприятия"] -.-> A0
+    CTRL3["Политика информационной безопасности"] -.-> A0
+    MECH["Сервер БД PostgreSQL"] -.-> A0
+    A0 --> OUT1["Отчеты по затратам ТОиР"]
+    A0 --> OUT2["График работы водителей"]
+    A0 --> OUT3["Уведомления о предстоящем ТО"]
+    A0 --> OUT4["Сводка по штрафам и статусе"]
+    A0 --> OUT5["Журнал аудита (log)"]
+
+    style A0 fill:#E8F5E9,stroke:#4A7C59,stroke-width:4px
+    style IN1 fill:#E3F2FD
+    style IN2 fill:#E3F2FD
+    style IN3 fill:#E3F2FD
+    style IN4 fill:#E3F2FD
+    style CTRL1 fill:#FFF9C4
+    style CTRL2 fill:#FFF9C4
+    style CTRL3 fill:#FFF9C4
+    style OUT1 fill:#FCE4EC
+    style OUT2 fill:#FCE4EC
+    style OUT3 fill:#FCE4EC
+    style OUT4 fill:#FCE4EC
+    style OUT5 fill:#FCE4EC
+    style MECH fill:#E0E0E0
+    </div>
+    <div class="legend">
+        <strong>IDEF0 A-0:</strong> Система Carvix интегрируется с API ГИБДД,
+        хранит данные в PostgreSQL, управляется политикой ИБ и бюджетом предприятия.
+    </div>
+</div>
+
+<!-- ==================== А.6 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.6 — Декомпозиция уровня A1 функциональной модели IDEF0</div>
+    <div class="diagram-desc">Декомпозиция процесса A0 на 6 функциональных блоков A1…A6</div>
+    <div class="mermaid">
+graph LR
+    subgraph "Уровень A1 — Декомпозиция Carvix"
+        direction TB
+
+        A1["A1<br/>Управление<br/>ТС и водителями"]
+        A2["A2<br/>Планирование<br/>графика работ"]
+        A3["A3<br/>Учет ТО,<br/>ремонтов и<br/>запчастей"]
+        A4["A4<br/>Учет штрафов<br/>и нарушений"]
+        A5["A5<br/>Формирование<br/>отчетности и<br/>аналитики"]
+        A6["A6<br/>Администрирование<br/>и безопасность"]
+    end
+
+    IN1["БД ТС /<br/>Водители"] --> A1
+    IN2["Заявки /<br/>Накладные"] --> A3
+    IN3["Данные<br/>ГИБДД"] --> A4
+    CTRL["Политика ИБ /<br/>Роли / JWT"] -.-> A1 & A6
+    CTRL2["Бюджет /<br/>Нормативы"] -.-> A3 & A5
+    A1 -->|"TS/Vehicle data"| A2
+    A1 -->|"Driver/TS data"| A3
+    A2 -->|"Schedule data"| A5
+    A3 -->|"Maintenance costs"| A5
+    A4 -->|"Fines data"| A5
+    A5 --> OUT1["Отчеты /<br/>Дашборд"]
+    A6 -->|"Users/Roles"| A1
+    A6 -->|"Audit logs"| A5
+    MECH1["PostgreSQL"] -.-> A1 & A2 & A3 & A4 & A5 & A6
+    MECH2["GIBDD API"] -.-> A4
+    MECH3["Matplotlib /<br/>PyQt6"] -.-> A5
+
+    style A1 fill:#E3F2FD,stroke:#4A7C59
+    style A2 fill:#E3F2FD,stroke:#4A7C59
+    style A3 fill:#E3F2FD,stroke:#4A7C59
+    style A4 fill:#E3F2FD,stroke:#4A7C59
+    style A5 fill:#E3F2FD,stroke:#4A7C59
+    style A6 fill:#E3F2FD,stroke:#4A7C59
+    </div>
+    <div class="legend">
+        <strong>Декомпозиция A1:</strong> A1 — справочники ТС/водителей; A2 — график работ;
+        A3 — ремонты и запчасти; A4 — штрафы; A5 — отчеты и аналитика; A6 — администрирование.
+        Потоки данных между блоками показаны стрелками.
+    </div>
+</div>
+
+<!-- ==================== А.7 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.7 — Диаграмма потоков данных DFD уровня 0</div>
+    <div class="diagram-desc">ГОСТ Р ИСО/МЭК 2382: процессы, хранилища, внешние сущности и потоки данных</div>
+    <div class="mermaid">
+graph LR
+    subgraph "Внешние сущности"
+        E1[Пользователь]
+        E2[ГИБДД API]
+        E3[Администратор]
+    end
+
+    subgraph "Процессы"
+        P1["1.0<br/>Аутентификация"]
+        P2["2.0<br/>Управление ТС"]
+        P3["3.0<br/>Управление<br/>водителями"]
+        P4["4.0<br/>График работ"]
+        P5["5.0<br/>ТО и ремонты"]
+        P6["6.0<br/>Учет штрафов"]
+        P7["7.0<br/>Формирование<br/>отчетов"]
+    end
+
+    subgraph "Хранилища данных"
+        D1[(D1<br/>sotrudnik)]
+        D2[(D2<br/>transportnoe_<br/>sredstvo)]
+        D3[(D3<br/>work_schedule)]
+        D4[(D4<br/>fines)]
+        D5[(D5<br/>remont /<br/>zayavka)]
+        D6[(D6<br/>zapchast)]
+        D7[(D7<br/>byudzhet /<br/>prochiy_raskhod)]
+        D8[(D8<br/>audit_log)]
+    end
+
+    E1 -->|"login / password"| P1
+    P1 -->|"JWT-token"| E1
+    P1 -->|"SELECT/UPDATE"| D1
+    E1 -->|"CRUD ТС"| P2
+    P2 -->|"read/write"| D2
+    E1 -->|"CRUD водителей"| P3
+    P3 -->|"read/write"| D1
+    E1 -->|"CRUD смен"| P4
+    P4 -->|"read/write"| D3
+    E1 -->|"обновить ТО"| P5
+    P5 -->|"read/write"| D2
+    P5 -->|"read/write"| D5
+    P5 -->|"read/write"| D6
+    E1 -->|"синхронизация"| P6
+    E2 -->|"JSON-штрафы"| P6
+    P6 -->|"read/write"| D4
+    P6 -->|"read"| D2
+    E3 -->|"запрос отчета"| P7
+    P7 -->|"SELECT агрегаты"| D2 & D4 & D5
+    P7 -->|"read"| D7
+    P7 -->|"генерация графика"| E3
+    P2 & P3 & P4 & P5 & P6 & P7 -->|"audit записи"| D8
+
+    style P1 fill:#FFF3E0,stroke:#e5a00d
+    style P2 fill:#E8F5E9,stroke:#4A7C59
+    style P3 fill:#E8F5E9,stroke:#4A7C59
+    style P4 fill:#E8F5E9,stroke:#4A7C59
+    style P5 fill:#E8F5E9,stroke:#4A7C59
+    style P6 fill:#E8F5E9,stroke:#4A7C59
+    style P7 fill:#E8F5E9,stroke:#4A7C59
+    style D1 fill:#E3F2FD,stroke:#1976D2
+    style D2 fill:#E3F2FD,stroke:#1976D2
+    style D3 fill:#E3F2FD,stroke:#1976D2
+    style D4 fill:#E3F2FD,stroke:#1976D2
+    style D5 fill:#E3F2FD,stroke:#1976D2
+    style D6 fill:#E3F2FD,stroke:#1976D2
+    style D7 fill:#E3F2FD,stroke:#1976D2
+    style D8 fill:#E3F2FD,stroke:#1976D2
+    </div>
+    <div class="legend">
+        <strong>Нотация DFD (ГОСТ 19.701-90):</strong> Окружения — внешние сущности; скругленные прямоугольники — процессы;
+        открытые справа прямоугольники — хранилища данных; стрелки — потоки данных с указанием содержимого.
+    </div>
+</div>
+
+<!-- ==================== А.8 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.8 — Логическая ER-диаграмма базы данных системы Carvix</div>
+    <div class="diagram-desc">Crow's Foot нотация (IE-нотация): таблицы, атрибуты, PK/FK, связи</div>
+    <div class="mermaid">
+erDiagram
+    marka ||--o{ model : ""
+    model ||--o{ transportnoe_sredstvo : ""
+    podrazdelenie ||--o{ transportnoe_sredstvo : ""
+    podrazdelenie ||--o{ sotrudnik : ""
+    rol ||--o{ sotrudnik : ""
+    sotrudnik ||--o{ transportnoe_sredstvo : "assigned"
+    transportnoe_sredstvo ||--o{ zayavka : ""
+    sotrudnik ||--o{ zayavka : "sozdatel"
+    status ||--o{ zayavka : ""
+    tip_remonta ||--o{ zayavka : ""
+    zayavka ||--|| remont : ""
+    sotrudnik ||--o{ remont : "mekhanik"
+    sotrudnik ||--o{ remont : "gl_mekhanik"
+    remont ||--o{ ispolzovanie_zapchastey : ""
+    zapchast ||--o{ ispolzovanie_zapchastey : ""
+    zapchast ||--o{ prikhod_zapchasti_pozitsii : ""
+    postavshik ||--o{ prikhod_zapchasti : ""
+    prikhod_zapchasti ||--o{ prikhod_zapchasti_pozitsii : ""
+    tip_remonta ||--o{ tarif_rabot : ""
+    podrazdelenie ||--o{ byudzhet : ""
+    transportnoe_sredstvo ||--o{ prochiy_raskhod : ""
+    podrazdelenie ||--o{ prochiy_raskhod : ""
+    remont ||--o{ remont_normy : ""
+    sotrudnik ||--o{ remont_normy : ""
+    tarif_rabot ||--o{ remont_normy : ""
+    zayavka ||--o{ zayavka_status_istoriya : ""
+    status ||--o{ zayavka_status_istoriya : ""
+    sotrudnik ||--o{ zayavka_status_istoriya : ""
+    zayavka ||--o{ soobscheniye : ""
+    sotrudnik ||--o{ soobscheniye : "otpravitel"
+    zayavka ||--o{ vlozhenie : ""
+    remont ||--o{ vlozhenie : ""
+    sotrudnik ||--o{ prikhod_zapchasti : "sozdatel"
+    sotrudnik ||--o{ finansoviy_log : ""
+    transportnoe_sredstvo ||--o{ work_schedule : ""
+    sotrudnik ||--o{ work_schedule : "driver"
+    transportnoe_sredstvo ||--o{ fines : ""
+    sotrudnik ||--o{ audit_log : ""
+
+    marka { int id PK; varchar nazvanie }
+    model { int id PK; int marka_id FK; varchar nazvanie }
+    podrazdelenie { int id PK; varchar nazvanie }
+    rol { int id PK; varchar nazvanie }
+    sotrudnik { int id PK; varchar fio; varchar login UK; varchar parol_hash; int rol_id FK; int podrazdelenie_id FK; varchar license_number; varchar phone }
+    transportnoe_sredstvo { int id PK; varchar gos_nomer; varchar invent_nomer; varchar vin; int probeg; int model_id FK; int podrazdelenie_id FK; int assigned_driver_id FK; varchar tekuschee_sostoyanie; date data_vypuska; int sozdatel_id FK }
+    status { int id PK; varchar nazvanie }
+    tip_remonta { int id PK; varchar nazvanie; varchar kategoriya }
+    postavshik { int id PK; varchar nazvanie; varchar kontakty; varchar adres }
+    zapchast { int id PK; varchar naimenovanie; varchar artikul; int postavshik_id FK; decimal tsena; int ostatok_na_sklade; varchar kategoriya }
+    zayavka { int id PK; timestamp data_sozdaniya; int sozdatel_id FK; int ts_id FK; int tip_remonta_id FK; text opisanie; int status_id FK; int prioritet; timestamp data_rezhima }
+    zayavka_status_istoriya { int id PK; int zayavka_id FK; int status_id FK; varchar status_nazvanie; int sotrudnik_id FK; varchar sotrudnik_fio; timestamp data_izmeneniya; text kommentariy }
+    remont { int id PK; int zayavka_id FK; timestamp data_nachala; timestamp data_okonchaniya; int mekhanik_id FK; int glavniy_mekhanik_id FK; decimal stoimost_rabot; decimal stoimost_zapchastey; text kommentariy; varchar itog; date garantiya_do }
+    ispolzovanie_zapchastey { int remont_id FK; int zapchast_id FK; int kolichestvo; decimal tsena_na_moment }
+    vlozhenie { int id PK; int zayavka_id FK; int remont_id FK; varchar put_faila; varchar tip_faila; timestamp data_zagruzki }
+    prikhod_zapchasti { int id PK; int postavshik_id FK; date data_prikhoda; varchar nomer_nakl; decimal summa_obshaya; text kommentariy; int sozdatel_id FK }
+    prikhod_zapchasti_pozitsii { int id PK; int prikhod_id FK; int zapchast_id FK; int kolichestvo; decimal tsena_za_edinicu }
+    tarif_rabot { int id PK; int tip_remonta_id FK; decimal tsena_za_chas; date data_s; date data_po }
+    byudzhet { int id PK; int podrazdelenie_id FK; int god; int mesyats; varchar kategoriya; decimal plan_summa }
+    prochiy_raskhod { int id PK; int ts_id FK; int podrazdelenie_id FK; date data; varchar kategoriya; decimal summa; text opisanie }
+    remont_normy { int remont_id FK; int mekhanik_id FK; decimal chasy; int tarif_id FK }
+    finansoviy_log { int id PK; timestamp data_operatsii; int sotrudnik_id FK; varchar tip_operatsii; varchar obyekt_tablitsa; int obyekt_id; decimal summa; text kommentariy }
+    soobscheniye { int id PK; int zayavka_id FK; int otpravitel_id FK; text tekst; timestamp data_otpravki }
+    work_schedule { int id PK; int driver_id FK; int ts_id FK; date work_date; time shift_start; time shift_end; varchar status }
+    fines { int id PK; int ts_id FK; date fine_date; decimal amount; varchar description; varchar status; varchar postanovlenie_number }
+    settings { varchar key PK; varchar value }
+    audit_log { int id PK; int sotrudnik_id FK; varchar action; timestamp log_timestamp }
+    </div>
+    <div class="legend">
+        <strong>Crow's Foot нотация:</strong> || — один и только один; |o — ноль или один;
+        } — много; PK — первичный ключ; FK — внешний ключ; UK — уникальный.
+        Таблицы ядра Carvix Desktop: sotrudnik, transportnoe_sredstvo, work_schedule, fines.
+    </div>
+</div>
+
+<!-- ==================== А.9 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.9 — Трёхуровневая клиент-серверная архитектура информационной системы Carvix</div>
+    <div class="diagram-desc">ГОСТ Р 56939-2016: представление, прикладной уровень, уровень данных</div>
+    <div class="mermaid">
+graph TB
+    subgraph "Клиентский уровень (Presentation Tier)"
+        C1[Браузер<br/>Carvix Web<br/>React + Vite]
+        C2[Desktop-клиент<br/>Carvix Desktop<br/>PyQt6 + Matplotlib]
+    end
+
+    subgraph "Прикладной уровень (Application Tier)"
+        A1[Web-сервер<br/>Django REST<br/>Framework]
+        A2[Desktop<br/>контроллеры<br/>Python 3.11]
+        A3[Слой бизнес-логики<br/>permissions.py<br/>validation.py]
+        A4[Сервис аутентификации<br/>JWT / bcrypt]
+    end
+
+    subgraph "Уровень данных (Data Tier)"
+        D1[(PostgreSQL<br/>15+)]
+        D2[Модели ORM<br/>Django ORM]
+        D3[Пул соединений<br/>psycopg2 pool]
+        D4[Локальные<br/>настройки JSON]
+    end
+
+    C1 <-->|"HTTP / REST<br/>JSON"| A1
+    C2 <-->|"Python-вызовы<br/>сигналы PyQt"| A2
+    A1 -->|"ORM-запросы"| D2
+    A2 -->|"SQL-запросы<br/>пул conn"| D3
+    A2 --> D4
+    D2 --> D1
+    D3 --> D1
+    A1 --> A3
+    A2 --> A3
+    A1 --> A4
+    A2 --> A4
+    A4 --> D1
+
+    style C1 fill:#E3F2FD,stroke:#1976D2
+    style C2 fill:#E3F2FD,stroke:#1976D2
+    style A1 fill:#E8F5E9,stroke:#4A7C59
+    style A2 fill:#E8F5E9,stroke:#4A7C59
+    style A3 fill:#E8F5E9,stroke:#4A7C59
+    style A4 fill:#FFF3E0,stroke:#e5a00d
+    style D1 fill:#FCE4EC,stroke:#B23A3A
+    style D2 fill:#FCE4EC,stroke:#B23A3A
+    style D3 fill:#FCE4EC,stroke:#B23A3A
+    style D4 fill:#FCE4EC,stroke:#B23A3A
+    </div>
+    <div class="legend">
+        <strong>Трёхуровневая архитектура:</strong> Клиент (Web/Desktop) → Прикладной (Django/Python) → Данные (PostgreSQL).
+        Web-версия использует Django REST Framework, Desktop — прямое подключение через psycopg2 connection pool.
+    </div>
+</div>
+
+<!-- ==================== А.10 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.10 — Последовательность операций JWT-аутентификации</div>
+    <div class="diagram-desc">UML Sequence Diagram: процесс входа в систему Carvix Desktop с JWT</div>
+    <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor П as Пользователь
+    participant UI as AuthDialog<br/>(PyQt6)
+    participant App as AuthService<br/>(Python)
+    participant DB as PostgreSQL
+    participant Log as Logger<br/>(audit_log)
+
+    П->>UI: Ввод login / password
+    UI->>App: authenticate(login, password)
+    App->>DB: SELECT * FROM sotrudnik<br/>WHERE login = %s
+    DB-->>App: user_data (id, fio,<br/>rol_id, parol_hash)
+
+    alt Пользователь найден
+        App->>App: bcrypt.checkpw(password,<br/>parol_hash)
+        alt Пароль верный
+            App->>App: Генерация JWT token
+            App->>Log: INSERT audit_log<br/>(action='LOGIN_SUCCESS')
+            App-->>UI: user_data + JWT
+            UI-->>П: Открыть MainWindow<br/>+ меню по rol_id
+        else Пароль неверный
+            App->>Log: INSERT audit_log<br/>(action='LOGIN_FAIL')
+            App-->>UI: False
+            UI-->>П: QMessageBox:<br/>«Неверный логин или пароль»
+        end
+    else Пользователь не найден
+        App->>Log: INSERT audit_log<br/>(action='LOGIN_FAIL')
+        App-->>UI: None
+        UI-->>П: QMessageBox:<br/>«Неверный логин или пароль»
+    end
+
+    Note over П,Log: Тайм-аут сессии: 60 мин.<br/>бездействия → auto-logout
+    </div>
+    <div class="legend">
+        <strong>UML Sequence:</strong> Нумерация шагов согласно порядку выполнения.
+        Alt — альтернативные ветви (верный/неверный пароль, найден/не найден).
+        Аудит всех попыток входа записывается в audit_log.
+    </div>
+</div>
+
+<!-- ==================== А.11 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.11 — Диаграмма классов приложения Carvix Desktop</div>
+    <div class="diagram-desc">UML Class Diagram: основные классы PyQt6-приложения и их отношения</div>
+    <div class="mermaid">
+classDiagram
+    class MainWindow {
+        +user_data
+        +pages
+        +reset_inactivity_timer()
+        +navigate_to()
+        +logout()
+    }
+
+    class AuthDialog {
+        +authenticated
+        +exit_app
+        +user_data
+        +attempt_auth()
+    }
+
+    class BasePage {
+        +user_data
+        +init_ui()
+        +refresh_data()
+    }
+
+    class DashboardPage {
+        +update_charts()
+    }
+
+    class VehiclesPage {
+        +refresh_data()
+    }
+
+    class DriversPage {
+        +refresh_data()
+    }
+
+    class SchedulePage {
+        +refresh_data()
+        +filter_table()
+    }
+
+    class MaintenancePage {
+        +check_expiry()
+    }
+
+    class FinesPage {
+        +sync_with_gibdd()
+    }
+
+    class ReportsPage {
+        +generate_report()
+    }
+
+    class UsersPage {
+        +refresh_data()
+    }
+
+    class ProfilePage {
+        +save_profile()
+    }
+
+    class SettingsPage {
+        +save_settings()
+    }
+
+    class Database {
+        +initialize_pool()
+        +get_connection()
+        +execute_query()
+    }
+
+    class SettingsManager {
+        +get_setting()
+        +set_setting()
+    }
+
+    class Validator {
+        +validate_gos_nomer()
+        +validate_vin()
+        +validate_fio()
+        +validate_phone()
+    }
+
+    class GibddAPI {
+        +check_fines_by_gos_number()
+        +sync_fines_to_db()
+    }
+
+    MainWindow --> AuthDialog
+    MainWindow --> BasePage
+    BasePage <|-- DashboardPage
+    BasePage <|-- VehiclesPage
+    BasePage <|-- DriversPage
+    BasePage <|-- SchedulePage
+    BasePage <|-- MaintenancePage
+    BasePage <|-- FinesPage
+    BasePage <|-- ReportsPage
+    BasePage <|-- UsersPage
+    BasePage <|-- ProfilePage
+    BasePage <|-- SettingsPage
+    FinesPage --> GibddAPI
+    MainWindow --> Database
+    BasePage --> Database
+    ReportsPage --> Database
+    DashboardPage --> Database
+    SettingsPage --> SettingsManager
+    BasePage --> Validator
+    AuthDialog --> Database
+    </div>
+    <div class="legend">
+        <strong>UML Class Diagram:</strong> Наследование (◁——), ассоциация (——>),
+        композиция (♦——>). BasePage — абстрактный базовый класс для всех страниц.
+        Database реализован как Singleton с пулом соединений psycopg2.
+    </div>
+</div>
+
+<!-- ==================== А.12 ==================== -->
+<div class="diagram-section page-break">
+    <div class="diagram-title">Рисунок А.12 — Диаграмма развёртывания модуля Carvix</div>
+    <div class="diagram-desc">UML Deployment Diagram: физические узлы, артефакты и коммуникации</div>
+    <div class="mermaid">
+graph TB
+    subgraph "Рабочая станция пользователя"
+        NODE1["<<узел>><br/>Windows 10/11 / macOS<br/>x86_64 или ARM"]
+        ART1["[артефакт]<br/>Carvix Desktop.exe<br/>Python 3.11 + PyQt6"]
+        ART2["[артефакт]<br/>matplotlib<br/>psycopg2-binary"]
+        ART3["[артефакт]<br/>config.ini<br/>(DB credentials)"]
+    end
+
+    subgraph "Сервер баз данных"
+        NODE2["<<узел>><br/>PostgreSQL 15+<br/>Ubuntu 22.04 LTS"]
+        ART4["[артефакт]<br/>БД Carvix<br/>таблицы + view"]
+        ART5["[артефакт]<br/>pg_hba.conf<br/>SSL-соединения"]
+    end
+
+    subgraph "Внешние сервисы"
+        NODE3["<<узел>><br/>API ГИБДД<br/>api.gibdd.ru"]
+        NODE4["<<узел>><br/>SMTP-сервер<br/>(email alerts)"]
+    end
+
+    NODE1 -->|"TCP/IP 5432<br/>SSL-шифрование"| NODE2
+    NODE1 -->|"HTTPS REST<br/>JSON-запросы"| NODE3
+    NODE1 -->|"SMTP 587<br/>TLS"| NODE4
+    NODE1 --> ART1
+    NODE1 --> ART2
+    NODE1 --> ART3
+    NODE2 --> ART4
+    NODE2 --> ART5
+
+    style NODE1 fill:#E3F2FD,stroke:#1976D2
+    style NODE2 fill:#E8F5E9,stroke:#4A7C59
+    style NODE3 fill:#FFF3E0,stroke:#e5a00d
+    style NODE4 fill:#FFF3E0,stroke:#e5a00d
+    style ART1 fill:#BBDEFB
+    style ART2 fill:#BBDEFB
+    style ART3 fill:#BBDEFB
+    style ART4 fill:#C8E6C9
+    style ART5 fill:#C8E6C9
+    </div>
+    <div class="legend">
+        <strong>UML Deployment:</strong> Узлы — физические или виртуальные машины;
+        артефакты — развёртываемые файлы/компоненты. Связи — протоколы коммуникации.
+        Десктоп-приложение подключается к PostgreSQL напрямую через SSL (порт 5432).
+    </div>
+</div>
+
+</div>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        er: { useMaxWidth: true },
+        sequence: { useMaxWidth: true, diagramMarginX: 20, diagramMarginY: 20 },
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+    });
+</script>
+</body>
+</html>

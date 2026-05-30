@@ -45,8 +45,17 @@ class Database:
     
     @classmethod
     def get_connection(cls):
+        if not cls._connection_pool:
+            cls.initialize_pool()
         if cls._connection_pool:
-            return cls._connection_pool.getconn()
+            try:
+                return cls._connection_pool.getconn()
+            except pool.PoolError:
+                # Pool might be closed, reinitialize
+                cls._connection_pool = None
+                cls.initialize_pool()
+                if cls._connection_pool:
+                    return cls._connection_pool.getconn()
         return None
     
     @classmethod
@@ -130,6 +139,3 @@ class Database:
                 cursor.close()
             if connection:
                 cls.release_connection(connection)
-
-# Initialize connection pool on import
-Database.initialize_pool()

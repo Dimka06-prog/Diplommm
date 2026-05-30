@@ -1,13 +1,12 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QTableWidget, QTableWidgetItem,
                              QHeaderView, QDialog, QFormLayout, QLineEdit, QComboBox,
                              QMessageBox, QDateEdit, QMenu)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_ADD_MAINTENANCE, PERMISSION_EDIT_MAINTENANCE, PERMISSION_DELETE_MAINTENANCE
-from datetime import date, timedelta
+from datetime import date
 from src.api.gibdd_api import NotificationSystem
 
 class MaintenancePage(QWidget):
@@ -15,7 +14,7 @@ class MaintenancePage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
         
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -35,18 +34,53 @@ class MaintenancePage(QWidget):
             add_btn.clicked.connect(self.open_add_maintenance_dialog)
             header_layout.addWidget(add_btn)
         
-        check_btn = QPushButton("🔔 Проверить напоминания")
+        check_btn = QPushButton("Проверить напоминания")
         check_btn.setObjectName("secondary_btn")
         check_btn.clicked.connect(self.check_notifications)
         header_layout.addWidget(check_btn)
         layout.addLayout(header_layout)
+        
+        # Search bar
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("Поиск:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Введите гос. номер или статус...")
+        self.search_input.textChanged.connect(self.filter_table)
+        search_layout.addWidget(self.search_input)
+        search_layout.addStretch()
+        layout.addLayout(search_layout)
         
         self.table = QTableWidget()
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels(["ТС", "Дата ТО", "Тип", "Результат", "Следующее ТО", "Страховка до", "Статус"])
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.table.setStyleSheet("QTableWidget { background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E2E0; }")
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E2E0;
+                gridline-color: #EFEFEE;
+            }
+            QTableWidget::item {
+                padding: 8px 12px;
+            }
+            QHeaderView::section {
+                background: #F7F7F7;
+                color: #3F3D38;
+                padding: 10px 12px;
+                border: none;
+                border-bottom: 1px solid #E2E2E0;
+                font-weight: 600;
+                font-size: 13px;
+            }
+        """)
         layout.addWidget(self.table)
         
     def refresh_data(self):
@@ -55,24 +89,61 @@ class MaintenancePage(QWidget):
                        FROM transportnoe_sredstvo ts
                        ORDER BY ts.gos_nomer"""
             vehicles = Database.execute_query(query)
+            self.vehicles_data = vehicles  # Store for filtering
             self.table.setRowCount(len(vehicles))
             
             for row, veh in enumerate(vehicles):
-                self.table.setItem(row, 0, QTableWidgetItem(veh['gos_nomer']))
-                self.table.setItem(row, 1, QTableWidgetItem(str(veh.get('to_expiry', '-'))))
+                self.table.setItem(row, 0, QTableWidgetItem(veh.get('gos_nomer') or '-'))
+                self.table.setItem(row, 1, QTableWidgetItem(str(veh.get('to_expiry') or '-')))
                 self.table.setItem(row, 2, QTableWidgetItem("ТО-1"))
                 self.table.setItem(row, 3, QTableWidgetItem("Пройден"))
                 self.table.setItem(row, 4, QTableWidgetItem("-"))
-                self.table.setItem(row, 5, QTableWidgetItem(str(veh.get('insurance_expiry', '-'))))
+                self.table.setItem(row, 5, QTableWidgetItem(str(veh.get('insurance_expiry') or '-')))
                 
                 status = "OK"
-                if veh.get('insurance_expiry'):
-                    if veh['insurance_expiry'] < date.today():
-                        status = "Истекла"
+                insurance_expiry = veh.get('insurance_expiry')
+                if insurance_expiry and insurance_expiry < date.today():
+                    status = "Истекла"
                 self.table.setItem(row, 6, QTableWidgetItem(status))
-                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh['id'])
+                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh.get('id'))
         except Exception as e:
-            pass
+            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
+
+    def filter_table(self, search_text):
+        """Фильтрация таблицы по поисковому запросу"""
+        if not hasattr(self, 'vehicles_data'):
+            return
+
+        search_text = search_text.lower()
+        filtered_vehicles = []
+
+        for veh in self.vehicles_data:
+            gos_nomer = (veh.get('gos_nomer') or '').lower()
+            status = "OK"
+            insurance_expiry = veh.get('insurance_expiry')
+            if insurance_expiry and insurance_expiry < date.today():
+                status = "Истекла"
+            status = status.lower()
+
+            if search_text in gos_nomer or search_text in status:
+                filtered_vehicles.append(veh)
+
+        self.table.setRowCount(len(filtered_vehicles))
+
+        for row, veh in enumerate(filtered_vehicles):
+            self.table.setItem(row, 0, QTableWidgetItem(veh.get('gos_nomer') or '-'))
+            self.table.setItem(row, 1, QTableWidgetItem(str(veh.get('to_expiry') or '-')))
+            self.table.setItem(row, 2, QTableWidgetItem("ТО-1"))
+            self.table.setItem(row, 3, QTableWidgetItem("Пройден"))
+            self.table.setItem(row, 4, QTableWidgetItem("-"))
+            self.table.setItem(row, 5, QTableWidgetItem(str(veh.get('insurance_expiry') or '-')))
+            
+            status = "OK"
+            insurance_expiry = veh.get('insurance_expiry')
+            if insurance_expiry and insurance_expiry < date.today():
+                status = "Истекла"
+            self.table.setItem(row, 6, QTableWidgetItem(status))
+            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh.get('id'))
             
     def open_add_maintenance_dialog(self):
         dialog = MaintenanceDialog(self)
@@ -92,9 +163,9 @@ class MaintenancePage(QWidget):
 
         menu = QMenu()
         if has_permission(self.user_data['rol_id'], PERMISSION_EDIT_MAINTENANCE):
-            edit_action = menu.addAction("✏️ Редактировать")
+            edit_action = menu.addAction("Редактировать")
         if has_permission(self.user_data['rol_id'], PERMISSION_DELETE_MAINTENANCE):
-            delete_action = menu.addAction("🗑️ Удалить")
+            delete_action = menu.addAction("Удалить")
 
         action = menu.exec(self.table.mapToGlobal(position))
 
@@ -113,15 +184,19 @@ class MaintenancePage(QWidget):
             if maintenance_due:
                 message += f"Требуется ТО ({len(maintenance_due)} ТС):\n"
                 for veh in maintenance_due:
-                    message += f"- {veh['gos_nomer']}: до {veh['to_expiry']}\n"
+                    gos = veh.get('gos_nomer') or 'Неизвестно'
+                    expiry = veh.get('to_expiry') or '-'
+                    message += f"- {gos}: до {expiry}\n"
                 message += "\n"
             else:
                 message += "ТО в порядке\n\n"
-            
+
             if insurance_due:
                 message += f"Истекает страховка ({len(insurance_due)} ТС):\n"
                 for veh in insurance_due:
-                    message += f"- {veh['gos_nomer']}: до {veh['insurance_expiry']}\n"
+                    gos = veh.get('gos_nomer') or 'Неизвестно'
+                    expiry = veh.get('insurance_expiry') or '-'
+                    message += f"- {gos}: до {expiry}\n"
             else:
                 message += "Страховка в порядке"
             
@@ -152,7 +227,8 @@ class MaintenanceDialog(QDialog):
             vehicles = Database.execute_query("SELECT id, gos_nomer FROM transportnoe_sredstvo")
             for veh in vehicles:
                 self.ts_combo.addItem(veh['gos_nomer'], veh['id'])
-        except: pass
+        except Exception as e:
+            print(f"Ошибка загрузки ТС: {e}")
         
         form_layout.addRow("ТС:", self.ts_combo)
         form_layout.addRow("Дата следующего ТО:", self.to_date)

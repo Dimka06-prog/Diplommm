@@ -1,7 +1,6 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
                              QLabel, QGridLayout)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, ROLE_DRIVER, ROLE_MECHANIC, PERMISSION_VIEW_DRIVERS, PERMISSION_VIEW_VEHICLES
@@ -15,7 +14,7 @@ class DashboardPage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
         
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -29,34 +28,34 @@ class DashboardPage(QWidget):
         card_count = 0
         # Card 1: Total Vehicles (only for non-drivers)
         if has_permission(self.user_data['rol_id'], PERMISSION_VIEW_VEHICLES):
-            self.vehicles_card = self.create_stat_card("Всего ТС", "🚗", "#3F3D38")
+            self.vehicles_card = self.create_stat_card("Всего ТС", "", "#3F3D38")
             stats_layout.addWidget(self.vehicles_card, 0, card_count)
             card_count += 1
 
         # Card 2: Total Employees (only for non-drivers)
         if has_permission(self.user_data['rol_id'], PERMISSION_VIEW_DRIVERS):
-            self.drivers_card = self.create_stat_card("Всего сотрудников", "👤", "#3F3D38")
+            self.drivers_card = self.create_stat_card("Всего сотрудников", "", "#3F3D38")
             stats_layout.addWidget(self.drivers_card, 0, card_count)
             card_count += 1
 
         # Card 3: Active Vehicles (only for non-drivers)
         if has_permission(self.user_data['rol_id'], PERMISSION_VIEW_VEHICLES):
-            self.active_card = self.create_stat_card("Активные ТС", "✅", "#4A7C59")
+            self.active_card = self.create_stat_card("Активные ТС", "", "#4A7C59")
             stats_layout.addWidget(self.active_card, 0, card_count)
             card_count += 1
 
         # Card 4: Maintenance Due (only for mechanics and dispatchers)
         if self.user_data['rol_id'] in [ROLE_MECHANIC, 1, 4]:  # mechanic, dispatcher, admin
-            self.maintenance_card = self.create_stat_card("Требуется ТО", "🔧", "#e5a00d")
+            self.maintenance_card = self.create_stat_card("Требуется ТО", "", "#e5a00d")
             stats_layout.addWidget(self.maintenance_card, 0, card_count)
             card_count += 1
 
         # Driver-specific cards
         if self.user_data['rol_id'] == ROLE_DRIVER:
-            self.my_schedule_card = self.create_stat_card("Мои смены", "📅", "#3F3D38")
+            self.my_schedule_card = self.create_stat_card("Мои смены", "", "#3F3D38")
             stats_layout.addWidget(self.my_schedule_card, 0, 0)
 
-            self.my_fines_card = self.create_stat_card("Мои штрафы", "📋", "#e5a00d")
+            self.my_fines_card = self.create_stat_card("Мои штрафы", "", "#e5a00d")
             stats_layout.addWidget(self.my_fines_card, 0, 1)
         
         layout.addLayout(stats_layout)
@@ -93,7 +92,7 @@ class DashboardPage(QWidget):
             charts_layout.addWidget(charts_title)
 
             # Create matplotlib figure
-            self.figure = Figure(figsize=(10, 4), dpi=100)
+            self.figure = Figure(figsize=(10, 4), dpi=100, facecolor='#FBF8F3')
             self.canvas = FigureCanvas(self.figure)
             charts_layout.addWidget(self.canvas)
 
@@ -176,18 +175,18 @@ class DashboardPage(QWidget):
                 if schedule_result:
                     self.my_schedule_card.value_label.setText(str(schedule_result[0]['count']))
 
-            # Driver-specific: My fines count
+            # Driver-specific: My fines count (all fines for driver's vehicles)
             if hasattr(self, 'my_fines_card'):
                 fines_query = """SELECT COUNT(*) as count FROM fines f
                                LEFT JOIN transportnoe_sredstvo t ON f.ts_id = t.id
-                               WHERE t.assigned_driver_id = %s AND f.status = 'Не оплачен'"""
+                               WHERE t.assigned_driver_id = %s"""
                 fines_result = Database.execute_query(fines_query, (self.user_data['id'],))
                 if fines_result:
                     self.my_fines_card.value_label.setText(str(fines_result[0]['count']))
 
             # Get recent activity (simplified)
             activity_text = f"Последнее обновление: {date.today().strftime('%d.%m.%Y')}\n"
-            activity_text += f"Пользователь: {self.user_data['fio']}"
+            activity_text += f"Пользователь: {self.user_data.get('fio') or 'Пользователь'}"
             self.activity_label.setText(activity_text)
 
             # Update charts (only for non-drivers)
@@ -217,31 +216,57 @@ class DashboardPage(QWidget):
             """
             fines_status = Database.execute_query(fines_by_status_query)
 
-            # Create subplots
+            # Create subplots with consistent styling
             ax1 = self.figure.add_subplot(121)
+            ax1.set_facecolor('#FBF8F3')
+            for spine in ax1.spines.values():
+                spine.set_color('#E2E2E0')
+            ax1.tick_params(colors='#3F3D38')
+            ax1.title.set_color('#1C1B17')
             ax2 = self.figure.add_subplot(122)
+            ax2.set_facecolor('#FBF8F3')
+            for spine in ax2.spines.values():
+                spine.set_color('#E2E2E0')
+            ax2.tick_params(colors='#3F3D38')
+            ax2.title.set_color('#1C1B17')
 
-            # Vehicle status chart
+            # Vehicle status chart (bar chart instead of pie)
             if vehicles_status:
                 statuses = [v['tekuschee_sostoyanie'] for v in vehicles_status]
                 counts = [v['count'] for v in vehicles_status]
                 colors = ['#4A7C59' if s == 'Активно' else '#e5a00d' if s == 'На ремонте' else '#3F3D38' for s in statuses]
-                ax1.pie(counts, labels=statuses, autopct='%1.1f%%', colors=colors, startangle=90)
-                ax1.set_title('Статус ТС', fontsize=12, fontweight='bold')
+                bars1 = ax1.bar(statuses, counts, color=colors)
+                ax1.set_title('Статус ТС', fontsize=11, fontweight='bold', pad=10)
+                ax1.set_ylabel('Количество', fontsize=9)
+                ax1.tick_params(axis='x', labelsize=8, rotation=45)
+                ax1.tick_params(axis='y', labelsize=8)
+                # Add value labels on bars
+                for bar in bars1:
+                    height = bar.get_height()
+                    ax1.text(bar.get_x() + bar.get_width()/2., height,
+                            f'{int(height)}', ha='center', va='bottom', fontsize=8)
             else:
-                ax1.text(0.5, 0.5, 'Нет данных', ha='center', va='center')
+                ax1.text(0.5, 0.5, 'Нет данных', ha='center', va='center', fontsize=12)
 
-            # Fines status chart
+            # Fines status chart (bar chart instead of pie)
             if fines_status:
                 statuses = [f['status'] for f in fines_status]
                 counts = [f['count'] for f in fines_status]
-                colors = ['#4A7C59' if s == 'Оплачен' else '#e5a00d' if s == 'В обработке' else '#C0392B' for s in statuses]
-                ax2.pie(counts, labels=statuses, autopct='%1.1f%%', colors=colors, startangle=90)
-                ax2.set_title('Статус штрафов', fontsize=12, fontweight='bold')
+                colors = ['#4A7C59' if s == 'Оплачен' else '#e5a00d' if s == 'В обработке' else '#B23A3A' for s in statuses]
+                bars2 = ax2.bar(statuses, counts, color=colors)
+                ax2.set_title('Статус штрафов', fontsize=11, fontweight='bold', pad=10)
+                ax2.set_ylabel('Количество', fontsize=9)
+                ax2.tick_params(axis='x', labelsize=8, rotation=45)
+                ax2.tick_params(axis='y', labelsize=8)
+                # Add value labels on bars
+                for bar in bars2:
+                    height = bar.get_height()
+                    ax2.text(bar.get_x() + bar.get_width()/2., height,
+                            f'{int(height)}', ha='center', va='bottom', fontsize=8)
             else:
-                ax2.text(0.5, 0.5, 'Нет данных', ha='center', va='center')
+                ax2.text(0.5, 0.5, 'Нет данных', ha='center', va='center', fontsize=12)
 
-            self.figure.tight_layout()
+            self.figure.subplots_adjust(bottom=0.25)
             self.canvas.draw()
         except Exception as e:
             print(f"Ошибка обновления графиков: {e}")

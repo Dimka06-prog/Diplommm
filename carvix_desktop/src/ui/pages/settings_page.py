@@ -2,19 +2,17 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
                              QLabel, QPushButton, QFormLayout, QLineEdit,
                              QMessageBox, QComboBox, QSpinBox, QCheckBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_SYSTEM_SETTINGS
 from src.settings_manager import SettingsManager
-from config import COLORS
 
 class SettingsPage(QWidget):
     def __init__(self, user_data):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
 
     def init_ui(self):
         layout = QVBoxLayout(self)

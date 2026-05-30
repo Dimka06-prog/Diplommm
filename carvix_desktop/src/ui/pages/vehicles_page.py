@@ -1,9 +1,8 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QTableWidget, QTableWidgetItem,
                              QHeaderView, QDialog, QLineEdit, QFormLayout, QComboBox,
                              QMessageBox, QDateEdit, QSpinBox, QMenu)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_ADD_VEHICLE, PERMISSION_EDIT_VEHICLE, PERMISSION_DELETE_VEHICLE
@@ -14,7 +13,7 @@ class VehiclesPage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
         
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -85,17 +84,17 @@ class VehiclesPage(QWidget):
             self.table.setRowCount(len(vehicles))
 
             for row, veh in enumerate(vehicles):
-                self.table.setItem(row, 0, QTableWidgetItem(veh['gos_nomer']))
-                self.table.setItem(row, 1, QTableWidgetItem(veh['invent_nomer']))
-                self.table.setItem(row, 2, QTableWidgetItem(veh.get('marka_name', '-')))
-                self.table.setItem(row, 3, QTableWidgetItem(veh.get('model_name', '-')))
-                self.table.setItem(row, 4, QTableWidgetItem(veh['vin']))
-                self.table.setItem(row, 5, QTableWidgetItem(str(veh['probeg'])))
-                self.table.setItem(row, 6, QTableWidgetItem(veh['tekuschee_sostoyanie']))
-                self.table.setItem(row, 7, QTableWidgetItem(veh.get('driver_fio', '-')))
-                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh['id'])
+                self.table.setItem(row, 0, QTableWidgetItem(veh.get('gos_nomer') or '-'))
+                self.table.setItem(row, 1, QTableWidgetItem(veh.get('invent_nomer') or '-'))
+                self.table.setItem(row, 2, QTableWidgetItem(veh.get('marka_name') or '-'))
+                self.table.setItem(row, 3, QTableWidgetItem(veh.get('model_name') or '-'))
+                self.table.setItem(row, 4, QTableWidgetItem(veh.get('vin') or '-'))
+                self.table.setItem(row, 5, QTableWidgetItem(str(veh.get('probeg') or 0)))
+                self.table.setItem(row, 6, QTableWidgetItem(veh.get('tekuschee_sostoyanie') or '-'))
+                self.table.setItem(row, 7, QTableWidgetItem(veh.get('driver_fio') or '-'))
+                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh.get('id'))
         except Exception as e:
-            pass
+            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
 
     def filter_table(self, search_text):
         """Фильтрация таблицы по поисковому запросу"""
@@ -106,10 +105,10 @@ class VehiclesPage(QWidget):
         filtered_vehicles = []
 
         for veh in self.vehicles_data:
-            gos_nomer = veh['gos_nomer'].lower()
-            vin = veh['vin'].lower()
-            invent_nomer = veh['invent_nomer'].lower()
-            marka = veh.get('marka_name', '').lower()
+            gos_nomer = (veh.get('gos_nomer') or '').lower()
+            vin = (veh.get('vin') or '').lower()
+            invent_nomer = (veh.get('invent_nomer') or '').lower()
+            marka = (veh.get('marka_name') or '').lower()
 
             if search_text in gos_nomer or search_text in vin or search_text in invent_nomer or search_text in marka:
                 filtered_vehicles.append(veh)
@@ -117,15 +116,15 @@ class VehiclesPage(QWidget):
         self.table.setRowCount(len(filtered_vehicles))
 
         for row, veh in enumerate(filtered_vehicles):
-            self.table.setItem(row, 0, QTableWidgetItem(veh['gos_nomer']))
-            self.table.setItem(row, 1, QTableWidgetItem(veh['invent_nomer']))
-            self.table.setItem(row, 2, QTableWidgetItem(veh.get('marka_name', '-')))
-            self.table.setItem(row, 3, QTableWidgetItem(veh.get('model_name', '-')))
-            self.table.setItem(row, 4, QTableWidgetItem(veh['vin']))
-            self.table.setItem(row, 5, QTableWidgetItem(str(veh['probeg'])))
-            self.table.setItem(row, 6, QTableWidgetItem(veh['tekuschee_sostoyanie']))
-            self.table.setItem(row, 7, QTableWidgetItem(veh.get('driver_fio', '-')))
-            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh['id'])
+            self.table.setItem(row, 0, QTableWidgetItem(veh.get('gos_nomer') or '-'))
+            self.table.setItem(row, 1, QTableWidgetItem(veh.get('invent_nomer') or '-'))
+            self.table.setItem(row, 2, QTableWidgetItem(veh.get('marka_name') or '-'))
+            self.table.setItem(row, 3, QTableWidgetItem(veh.get('model_name') or '-'))
+            self.table.setItem(row, 4, QTableWidgetItem(veh.get('vin') or '-'))
+            self.table.setItem(row, 5, QTableWidgetItem(str(veh.get('probeg') or 0)))
+            self.table.setItem(row, 6, QTableWidgetItem(veh.get('tekuschee_sostoyanie') or '-'))
+            self.table.setItem(row, 7, QTableWidgetItem(veh.get('driver_fio') or '-'))
+            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, veh.get('id'))
 
     def open_add_vehicle_dialog(self):
         dialog = VehicleDialog(self)
@@ -145,9 +144,9 @@ class VehiclesPage(QWidget):
 
         menu = QMenu()
         if has_permission(self.user_data['rol_id'], PERMISSION_EDIT_VEHICLE):
-            edit_action = menu.addAction("✏️ Редактировать")
+            edit_action = menu.addAction("Редактировать")
         if has_permission(self.user_data['rol_id'], PERMISSION_DELETE_VEHICLE):
-            delete_action = menu.addAction("🗑️ Удалить")
+            delete_action = menu.addAction("Удалить")
 
         action = menu.exec(self.table.mapToGlobal(position))
 
@@ -249,20 +248,25 @@ class VehicleDialog(QDialog):
             markas = Database.execute_query("SELECT id, nazvanie FROM marka")
             for marka in markas:
                 self.marka_combo.addItem(marka['nazvanie'], marka['id'])
-        except: self.marka_combo.addItem("Toyota", 1)
+        except Exception as e:
+            print(f"Ошибка загрузки марок: {e}")
+            self.marka_combo.addItem("Toyota", 1)
         
         try:
             depts = Database.execute_query("SELECT id, nazvanie FROM podrazdelenie")
             for dept in depts:
                 self.dept_combo.addItem(dept['nazvanie'], dept['id'])
-        except: self.dept_combo.addItem("Основное", 1)
+        except Exception as e:
+            print(f"Ошибка загрузки подразделений: {e}")
+            self.dept_combo.addItem("Основное", 1)
         
         self.driver_combo.addItem("Не назначен", None)
         try:
             drivers = Database.execute_query("SELECT id, fio FROM sotrudnik WHERE rol_id = 2")
             for driver in drivers:
                 self.driver_combo.addItem(driver['fio'], driver['id'])
-        except: pass
+        except Exception as e:
+            print(f"Ошибка загрузки водителей: {e}")
         
         self.status_combo.addItem("Активное", "Активное")
         self.status_combo.addItem("В ремонте", "В ремонте")

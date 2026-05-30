@@ -2,10 +2,9 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
                              QLabel, QPushButton, QFormLayout, QLineEdit,
                              QMessageBox, QDateEdit, QComboBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
-from src.permissions import has_permission, ROLE_DRIVER
+from src.permissions import has_permission
 from src.validation import Validator, ValidationError
 import bcrypt
 
@@ -14,7 +13,7 @@ class ProfilePage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -77,37 +76,36 @@ class ProfilePage(QWidget):
 
         profile_layout.addLayout(form_layout)
 
-        # Password change section
-        if has_permission(self.user_data['rol_id'], 'edit_driver'):
-            password_label = QLabel("Сменить пароль")
-            password_label.setFont(get_header_font(18))
-            password_label.setStyleSheet("color: #1C1B17;")
-            profile_layout.addWidget(password_label)
+        # Password change section (available to all users)
+        password_label = QLabel("Сменить пароль")
+        password_label.setFont(get_header_font(18))
+        password_label.setStyleSheet("color: #1C1B17;")
+        profile_layout.addWidget(password_label)
 
-            password_form = QFormLayout()
+        password_form = QFormLayout()
 
-            self.current_password = QLineEdit()
-            self.current_password.setPlaceholderText("Текущий пароль")
-            self.current_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.current_password = QLineEdit()
+        self.current_password.setPlaceholderText("Текущий пароль")
+        self.current_password.setEchoMode(QLineEdit.EchoMode.Password)
 
-            self.new_password = QLineEdit()
-            self.new_password.setPlaceholderText("Новый пароль")
-            self.new_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.new_password = QLineEdit()
+        self.new_password.setPlaceholderText("Новый пароль")
+        self.new_password.setEchoMode(QLineEdit.EchoMode.Password)
 
-            self.confirm_password = QLineEdit()
-            self.confirm_password.setPlaceholderText("Подтвердите пароль")
-            self.confirm_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.confirm_password = QLineEdit()
+        self.confirm_password.setPlaceholderText("Подтвердите пароль")
+        self.confirm_password.setEchoMode(QLineEdit.EchoMode.Password)
 
-            password_form.addRow("Текущий пароль:", self.current_password)
-            password_form.addRow("Новый пароль:", self.new_password)
-            password_form.addRow("Подтвердите:", self.confirm_password)
+        password_form.addRow("Текущий пароль:", self.current_password)
+        password_form.addRow("Новый пароль:", self.new_password)
+        password_form.addRow("Подтвердите:", self.confirm_password)
 
-            profile_layout.addLayout(password_form)
+        profile_layout.addLayout(password_form)
 
-            change_password_btn = QPushButton("Сменить пароль")
-            change_password_btn.setObjectName("primary_btn")
-            change_password_btn.clicked.connect(self.change_password)
-            profile_layout.addWidget(change_password_btn)
+        change_password_btn = QPushButton("Сменить пароль")
+        change_password_btn.setObjectName("primary_btn")
+        change_password_btn.clicked.connect(self.change_password)
+        profile_layout.addWidget(change_password_btn)
 
         layout.addWidget(profile_frame)
         layout.addStretch()
@@ -125,12 +123,12 @@ class ProfilePage(QWidget):
             result = Database.execute_query(query, (self.user_data['id'],))
             if result:
                 data = result[0]
-                self.fio_display.setText(data['fio'])
-                self.login_display.setText(data['login'])
-                self.role_display.setText(data['rol_name'])
-                self.license_display.setText(data.get('license_number', '-'))
-                self.phone_display.setText(data.get('phone', '-'))
-                self.dept_display.setText(data.get('podrazdelenie_name', '-'))
+                self.fio_display.setText(data.get('fio') or '-')
+                self.login_display.setText(data.get('login') or '-')
+                self.role_display.setText(data.get('rol_name') or '-')
+                self.license_display.setText(data.get('license_number') or '-')
+                self.phone_display.setText(data.get('phone') or '-')
+                self.dept_display.setText(data.get('podrazdelenie_name') or '-')
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
 

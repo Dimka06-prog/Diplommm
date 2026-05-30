@@ -1,9 +1,8 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QTableWidget, QTableWidgetItem,
                              QHeaderView, QDialog, QLineEdit, QFormLayout, QComboBox,
                              QMessageBox, QDateEdit, QMenu)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from src.database import Database
 from src.styles import get_header_font, get_font
 from src.permissions import has_permission, PERMISSION_ADD_DRIVER, PERMISSION_EDIT_DRIVER, PERMISSION_DELETE_DRIVER
@@ -16,7 +15,7 @@ class DriversPage(QWidget):
         super().__init__()
         self.user_data = user_data
         self.init_ui()
-        self.refresh_data()
+        # Don't call refresh_data here - it will be called when page is shown
         
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -100,15 +99,15 @@ class DriversPage(QWidget):
             self.table.setRowCount(len(drivers))
 
             for row, driver in enumerate(drivers):
-                self.table.setItem(row, 0, QTableWidgetItem(driver['fio']))
-                self.table.setItem(row, 1, QTableWidgetItem(driver['login']))
-                self.table.setItem(row, 2, QTableWidgetItem(driver.get('license_number', '-')))
-                self.table.setItem(row, 3, QTableWidgetItem(driver.get('phone', '-')))
-                self.table.setItem(row, 4, QTableWidgetItem(driver['rol_name']))
-                self.table.setItem(row, 5, QTableWidgetItem(driver.get('podrazdelenie_name', '-')))
-                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, driver['id'])
+                self.table.setItem(row, 0, QTableWidgetItem(driver.get('fio') or '-'))
+                self.table.setItem(row, 1, QTableWidgetItem(driver.get('login') or '-'))
+                self.table.setItem(row, 2, QTableWidgetItem(driver.get('license_number') or '-'))
+                self.table.setItem(row, 3, QTableWidgetItem(driver.get('phone') or '-'))
+                self.table.setItem(row, 4, QTableWidgetItem(driver.get('rol_name') or '-'))
+                self.table.setItem(row, 5, QTableWidgetItem(driver.get('podrazdelenie_name') or '-'))
+                self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, driver.get('id'))
         except Exception as e:
-            pass
+            QMessageBox.critical(self, "Ошибка", f"Ошибка загрузки данных: {str(e)}")
 
     def filter_table(self, search_text):
         """Фильтрация таблицы по поисковому запросу"""
@@ -119,9 +118,9 @@ class DriversPage(QWidget):
         filtered_drivers = []
 
         for driver in self.drivers_data:
-            fio = driver['fio'].lower()
-            login = driver['login'].lower()
-            license_num = driver.get('license_number', '').lower()
+            fio = (driver.get('fio') or '').lower()
+            login = (driver.get('login') or '').lower()
+            license_num = (driver.get('license_number') or '').lower()
 
             if search_text in fio or search_text in login or search_text in license_num:
                 filtered_drivers.append(driver)
@@ -129,13 +128,13 @@ class DriversPage(QWidget):
         self.table.setRowCount(len(filtered_drivers))
 
         for row, driver in enumerate(filtered_drivers):
-            self.table.setItem(row, 0, QTableWidgetItem(driver['fio']))
-            self.table.setItem(row, 1, QTableWidgetItem(driver['login']))
-            self.table.setItem(row, 2, QTableWidgetItem(driver.get('license_number', '-')))
-            self.table.setItem(row, 3, QTableWidgetItem(driver.get('phone', '-')))
-            self.table.setItem(row, 4, QTableWidgetItem(driver['rol_name']))
-            self.table.setItem(row, 5, QTableWidgetItem(driver.get('podrazdelenie_name', '-')))
-            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, driver['id'])
+            self.table.setItem(row, 0, QTableWidgetItem(driver.get('fio') or '-'))
+            self.table.setItem(row, 1, QTableWidgetItem(driver.get('login') or '-'))
+            self.table.setItem(row, 2, QTableWidgetItem(driver.get('license_number') or '-'))
+            self.table.setItem(row, 3, QTableWidgetItem(driver.get('phone') or '-'))
+            self.table.setItem(row, 4, QTableWidgetItem(driver.get('rol_name') or '-'))
+            self.table.setItem(row, 5, QTableWidgetItem(driver.get('podrazdelenie_name') or '-'))
+            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, driver.get('id'))
 
     def open_add_driver_dialog(self):
         dialog = DriverDialog(self)
@@ -155,9 +154,9 @@ class DriversPage(QWidget):
 
         menu = QMenu()
         if has_permission(self.user_data['rol_id'], PERMISSION_EDIT_DRIVER):
-            edit_action = menu.addAction("✏️ Редактировать")
+            edit_action = menu.addAction("Редактировать")
         if has_permission(self.user_data['rol_id'], PERMISSION_DELETE_DRIVER):
-            delete_action = menu.addAction("🗑️ Удалить")
+            delete_action = menu.addAction("Удалить")
 
         action = menu.exec(self.table.mapToGlobal(position))
 
@@ -263,7 +262,8 @@ class DriverDialog(QDialog):
             depts = Database.execute_query("SELECT id, nazvanie FROM podrazdelenie")
             for dept in depts:
                 self.dept_combo.addItem(dept['nazvanie'], dept['id'])
-        except:
+        except Exception as e:
+            print(f"Ошибка загрузки подразделений: {e}")
             self.dept_combo.addItem("Основное подразделение", 1)
         
         form_layout.addRow("ФИО:", self.fio_input)

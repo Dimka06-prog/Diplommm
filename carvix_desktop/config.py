@@ -64,7 +64,7 @@ ROLES = {
     'chief_mechanic': {'id': 4, 'name': 'Главный механик', 'name_en': 'chief_mechanic'},
     'director': {'id': 5, 'name': 'Директор', 'name_en': 'director'},
     'user': {'id': 6, 'name': 'Пользователь', 'name_en': 'user'},
-    'driver': {'id': 7, 'name': 'Водитель', 'name_en': 'driver'}
+    'driver': {'id': 6, 'name': 'Водитель', 'name_en': 'driver'}
 }
 
 APP_NAME = 'Carvix — Учет водителей и ТС'
